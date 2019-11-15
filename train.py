@@ -19,7 +19,6 @@ def read_file():
         training_data.write(title + "\n")
         training_data.close()
 
-
     # training_data = open('2018.txt', 'a')
     # training_data.write(df.to_string())
     # training_data.close()
@@ -48,9 +47,44 @@ def build_vocabulary(df):
         # raw = nltk.TreebankWordTokenizer().tokenize(title.lower())
         # raw = nltk.WhitespaceTokenizer().tokenize(title.lower())
 
-        # print("SPECIAL CHARACTERS:", special_char)
+        # print("RAW:", raw)
+
+        bigrm = list(nltk.bigrams(title.split()))
+        pos = nltk.pos_tag(raw)
+        pos_dict = dict(pos)
+        bigrams = []
+        for i in bigrm:
+            bigrams.append((''.join([w + ' ' for w in i])).strip())
+
+        # print('Bigrm:', bigrams)
+        # print('Pos:', pos)
+        # print('Pos1:', pos_dict)
+
+        for each_element in bigrams:
+            word = each_element.split(' ')
+            if word[0].istitle() and word[1].istitle():
+                if word[0].lower() in raw and (
+                        pos_dict.get(word[0].lower()) == 'NN' or pos_dict.get(word[0].lower()) == 'NNS'):
+                    if word[1].lower() in raw and (
+                            pos_dict.get(word[1].lower()) == 'NN' or pos_dict.get(word[1].lower()) == 'NNS'):
+                        index1 = raw.index(word[0].lower())
+                        # print('WORD0:', word[0])
+                        # print('WORD1:', word[1])
+                        # print('INDEX1:', index1)
+                        del raw[index1]
+                        if word[1].lower() in raw:
+                            index2 = raw.index(word[1].lower())
+                        else:
+                            raw.append(word[0])
+                            continue
+                        # print('INDEX2:', index2)
+                        # print('RAW:', raw)
+                        del raw[index2]
+                        # print('RAW:', raw)
+                        word_list.append(each_element.lower())
 
         pos = nltk.pos_tag(raw)
+        # print(pos)
 
         # print("TAG:", nltk.pos_tag(raw))
 
@@ -59,6 +93,7 @@ def build_vocabulary(df):
             # print("WORD:", each_word[0])
             # print("TAG:", each_word[1])
             word_list.append(lemmatizer.lemmatize(each_word[0], wordnet_tag))
+            # break
 
         # print("SENTENCE:", title)
         # print("TOKENIZED:", word_list)
@@ -71,14 +106,13 @@ def build_vocabulary(df):
     # a = dict(sorted(counts.items()))
 
     # print(word_list.count())
-    with open('frequency_new.txt', 'w') as f:
+    with open('frequency_ngram.txt', 'w') as f:
         for k, v in counts.items(): f.write(f'{k} {v}\n')
 
     print("TITLE:", df.at[0, 'Title'])
 
 
 def get_wordnet_pos(treebank_tag):
-
     if treebank_tag.startswith('J'):
         return 'a'
     elif treebank_tag.startswith('V'):
