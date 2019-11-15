@@ -1,6 +1,7 @@
 import pandas as pd
-from collections import Counter as Counter
+from collections import Counter, OrderedDict
 import nltk
+import time
 
 
 def read_file():
@@ -14,10 +15,10 @@ def read_file():
     mask_2019 = (df['date'] > start_date) & (df['date'] <= end_date)
     # print(df.loc[mask_2018].head(5))
 
-    for title in df['Title'].head(50):
-        training_data = open('sample.txt', 'a')
-        training_data.write(title + "\n")
-        training_data.close()
+    # for title in df['Title'].head(50):
+    #     training_data = open('sample.txt', 'a')
+    #     training_data.write(title + "\n")
+    #     training_data.close()
 
     # training_data = open('2018.txt', 'a')
     # training_data.write(df.to_string())
@@ -28,14 +29,21 @@ def read_file():
     # training_data.close()
     df_training = df.loc[mask_2018]
     df_testing = df.loc[mask_2019]
-    build_vocabulary(df_training)
+
+    build_vocabulary(pd.read_csv('sample.csv'))
     # print(df.tail(5))
 
 
 def build_vocabulary(df):
-    word_list = []
+    # word_list = []
 
     lemmatizer = nltk.WordNetLemmatizer()
+
+    word_freq_dict = {}
+
+    j = int(0)
+
+    start_time = time.process_time()
 
     for title in df['Title']:
         tokenizer = nltk.RegexpTokenizer(r"\w+", False, True)
@@ -46,8 +54,6 @@ def build_vocabulary(df):
         raw = tokenizer.tokenize(title.lower())
         # raw = nltk.TreebankWordTokenizer().tokenize(title.lower())
         # raw = nltk.WhitespaceTokenizer().tokenize(title.lower())
-
-        # print("RAW:", raw)
 
         bigrm = list(nltk.bigrams(title.split()))
         pos = nltk.pos_tag(raw)
@@ -62,6 +68,7 @@ def build_vocabulary(df):
 
         for each_element in bigrams:
             word = each_element.split(' ')
+            # print("HERE:", word)
             if word[0].istitle() and word[1].istitle():
                 if word[0].lower() in raw and (
                         pos_dict.get(word[0].lower()) == 'NN' or pos_dict.get(word[0].lower()) == 'NNS'):
@@ -81,10 +88,18 @@ def build_vocabulary(df):
                         # print('RAW:', raw)
                         del raw[index2]
                         # print('RAW:', raw)
-                        word_list.append(each_element.lower())
+                        temp = each_element.lower() + "-" + df.at[j, 'Post Type']
+                        freq = word_freq_dict.get(temp)
+
+                        if freq is None:
+                            word_freq_dict[temp] = 1
+                        else:
+                            freq += 1
+                            word_freq_dict[temp] = freq
+
+                        # word_list.append(each_element.lower())
 
         pos = nltk.pos_tag(raw)
-        # print(pos)
 
         # print("TAG:", nltk.pos_tag(raw))
 
@@ -92,22 +107,42 @@ def build_vocabulary(df):
             wordnet_tag = get_wordnet_pos(each_word[1])
             # print("WORD:", each_word[0])
             # print("TAG:", each_word[1])
-            word_list.append(lemmatizer.lemmatize(each_word[0], wordnet_tag))
+            word_lemm = lemmatizer.lemmatize(each_word[0], wordnet_tag)
+            temp = word_lemm + "-" + df.at[j, 'Post Type']
+            value = word_freq_dict.get(temp)
+
+            if value is None:
+                word_freq_dict[temp] = 1
+            else:
+                value += 1
+                word_freq_dict[temp] = value
+
+            # word_list.append(lemmatizer.lemmatize(each_word[0], wordnet_tag))
             # break
 
         # print("SENTENCE:", title)
         # print("TOKENIZED:", word_list)
         # input('PRESS A KEY!')
 
+        j += 1
         pos.clear()
 
-    word_list.sort()
-    counts = Counter(word_list)
+    # word_list.sort()
+    # counts = Counter(word_list)
+
+    od = OrderedDict(sorted(word_freq_dict.items()))
+
+    total_time = time.process_time() - start_time
+
+    print('TOTAL TIME TAKEN IN (S):', total_time)
     # a = dict(sorted(counts.items()))
 
-    # print(word_list.count())
-    with open('frequency_ngram.txt', 'w') as f:
-        for k, v in counts.items(): f.write(f'{k} {v}\n')
+    with open('frequency_dict.txt', 'w') as file:
+        for key, val in od.items():
+            file.write(str(key) + " " + str(val) + "\n")
+
+    # with open('frequency_ngram.txt', 'w') as f:
+    #     for k, v in counts.items(): f.write(f'{k} {v}\n')
 
     print("TITLE:", df.at[0, 'Title'])
 
