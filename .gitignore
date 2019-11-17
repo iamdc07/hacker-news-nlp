@@ -1,3 +1,9 @@
 .idea/
 __pycache__/
 hn2018_2019.csv
+poll.csv
+sample.csv
+probability.csv
+show_hn.csv
+story.csv
+ask_hn.csv
