@@ -8,3 +8,6 @@ show_hn.csv
 story.csv
 ask_hn.csv
 .DS_Store
+df_testing*
+model_df.csv
+sample_testing.csv
