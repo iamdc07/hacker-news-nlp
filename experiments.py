@@ -19,7 +19,7 @@ def baseline(class_probability, df_testing, model_show_hn, model_ask_hn, model_p
     df_testing = pd.read_csv("./sample_testing.csv")
 
     test_labels, predictions, title = classify(class_probability, df_testing, model_show_hn, model_ask_hn, model_poll,
-                                        model_story, exp)
+                                               model_story, exp)
 
     # exit(0)
 
@@ -63,25 +63,15 @@ def classify(class_probability, df_testing, model_show_hn, model_ask_hn, model_p
     predictions = []
 
     j = df_testing.first_valid_index()
+    line_count = 1
     # print(df_testing)
 
     for index, row in df_testing.iterrows():
-        filtered_raw = []
         # print("Row:", row["Post Type"])
         # exit(0)
         title = row["Title"]
         post_type = row["Post Type"]
         # print('Post Type:', post_type)
-
-        # hypothesis_story = 0.0
-        # hypothesis_ask_hn = 0.0
-        # hypothesis_poll = 0.0
-        # hypothesis_show_hn = 0.0
-
-        # temp_story = 0.0
-        # temp_ask_hn = 0.0
-        # temp_show_hn = 0.0
-        # temp_poll = 0.0
 
         tokenizer = nltk.RegexpTokenizer(r"\w+", False, True)
 
@@ -152,12 +142,31 @@ def classify(class_probability, df_testing, model_show_hn, model_ask_hn, model_p
         # print("Story:", hypothesis_story)
 
         # print(max(hypothesis_show_hn, hypothesis_ask_hn, hypothesis_poll, hypothesis_story))
-        print("predicted: ['", max(answer.items(), key=operator.itemgetter(1))[0], "'] actual:", post_type, ' title:',
+        prediction = max(answer.items(), key=operator.itemgetter(1))[0]
+        print("predicted: ['", prediction, "'] actual:", post_type, ' title:',
               title)
         # print(labels.get(post_type[0]))
         title_list.append(title)
         test_labels.append(labels.get(post_type))
         predictions.append(labels.get(max(answer.items(), key=operator.itemgetter(1))[0]))
+
+        if exp == 1:
+            file = open("baseline-result.txt", "a")
+            file.write(str(line_count) + " " + title + " " + prediction + " " + str(
+                hypothesis_story) + " " + str(
+                hypothesis_ask_hn) + " " + str(hypothesis_show_hn) + " " + str(
+                hypothesis_poll) + " " + str(
+                post_type) + " " + ("right" if post_type == prediction else "wrong") + '\n')
+            file.close()
+        elif exp == 2:
+            file = open("stopword-result.txt", "a")
+            file.write(str(line_count) + " " + title + " " + prediction + " " + str(
+                hypothesis_story) + " " + str(
+                hypothesis_ask_hn) + " " + str(hypothesis_show_hn) + " " + str(
+                hypothesis_poll) + " " + str(
+                post_type) + " " + ("right" if post_type == prediction else "wrong") + '\n')
+            file.close()
+        line_count += 1
 
     return test_labels, predictions, title
 
@@ -167,7 +176,7 @@ def select_experiment():
 
     while user_input != -1:
         print("Choose your experiment")
-        print("2. Perform Stopwords")
+        print("2. Stopwords")
         print("3. Word length Filtering")
         print("4. Infrequent Word Filtering")
         print("5. Smoothing\n")

@@ -275,124 +275,139 @@ def train(freq_dict, exp):
     # class_probability_story = int(class_probability_story * 10 ** 10) / 10.0 ** 10
 
     line_count = 1
-    with open('model-2018.txt', 'w') as file:
-        # score_show_hn = class_probability_show_hn
-        # score_ask_hn = class_probability_ask_hn
-        # score_poll = class_probability_poll
-        # score_story = class_probability_story
 
-        for word in vocabulary:
-            # word = r'^' + word + '$'
-            # temp_df_show_hn = show_hn_df[show_hn_df['Word'].str.match(word)]["Frequency"].tolist()
-            temp_df_show_hn = show_hn_df[show_hn_df['Word'] == word]["Frequency"].tolist()
+    # score_show_hn = class_probability_show_hn
+    # score_ask_hn = class_probability_ask_hn
+    # score_poll = class_probability_poll
+    # score_story = class_probability_story
 
-            # temp_df_show_hn = show_hn_df[show_hn_df['Word'].str.contains(word[0], regex=False, case=False, na=False)][
-            #     'Frequency'].tolist()
+    for word in vocabulary:
+        # word = r'^' + word + '$'
+        # temp_df_show_hn = show_hn_df[show_hn_df['Word'].str.match(word)]["Frequency"].tolist()
+        temp_df_show_hn = show_hn_df[show_hn_df['Word'] == word]["Frequency"].tolist()
 
-            if len(temp_df_show_hn) == 0:
-                temp_df_show_hn.append(0)
+        # temp_df_show_hn = show_hn_df[show_hn_df['Word'].str.contains(word[0], regex=False, case=False, na=False)][
+        #     'Frequency'].tolist()
 
-            # temp_df_ask_hn = ask_hn_df[ask_hn_df['Word'].str.match(word)]["Frequency"].tolist()
-            temp_df_ask_hn = ask_hn_df[ask_hn_df['Word'] == word]["Frequency"].tolist()
+        if len(temp_df_show_hn) == 0:
+            temp_df_show_hn.append(0)
 
-            # temp_df_ask_hn = ask_hn_df[ask_hn_df['Word'].str.contains(word[0], regex=False, case=False, na=False)][
-            #     'Frequency'].tolist()
+        # temp_df_ask_hn = ask_hn_df[ask_hn_df['Word'].str.match(word)]["Frequency"].tolist()
+        temp_df_ask_hn = ask_hn_df[ask_hn_df['Word'] == word]["Frequency"].tolist()
 
-            if len(temp_df_ask_hn) == 0:
-                temp_df_ask_hn.append(0)
+        # temp_df_ask_hn = ask_hn_df[ask_hn_df['Word'].str.contains(word[0], regex=False, case=False, na=False)][
+        #     'Frequency'].tolist()
 
-            # print(story_df[story_df['Word'].str.match("0")]["Word"].tolist()[0])
+        if len(temp_df_ask_hn) == 0:
+            temp_df_ask_hn.append(0)
 
-            # temp_df_story = story_df[story_df['Word'].str.match(word)]["Frequency"].tolist()
-            temp_df_story = story_df[story_df['Word'] == word]["Frequency"].tolist()
-            # print("WORD:", word)
+        # print(story_df[story_df['Word'].str.match("0")]["Word"].tolist()[0])
 
-            # temp_df_story = story_df[story_df['Word'].str.contains(word[0], regex=False, case=False, na=False)][
-            #     'Frequency'].tolist()
+        # temp_df_story = story_df[story_df['Word'].str.match(word)]["Frequency"].tolist()
+        temp_df_story = story_df[story_df['Word'] == word]["Frequency"].tolist()
+        # print("WORD:", word)
 
-            # temp_df_story = story_df.loc[story_df.Word.apply(lambda x: word[0])]
+        # temp_df_story = story_df[story_df['Word'].str.contains(word[0], regex=False, case=False, na=False)][
+        #     'Frequency'].tolist()
 
-            if len(temp_df_story) == 0:
-                temp_df_story.append(0)
+        # temp_df_story = story_df.loc[story_df.Word.apply(lambda x: word[0])]
 
-            # temp_df_poll = poll_df[poll_df['Word'].str.match(word)]["Frequency"].tolist()
-            temp_df_poll = poll_df[poll_df['Word'] == word]["Frequency"].tolist()
+        if len(temp_df_story) == 0:
+            temp_df_story.append(0)
 
-            # temp_df_poll = poll_df[poll_df['Word'].str.contains(word[0], regex=False, case=False, na=False)][
-            #     'Frequency'].tolist()
+        # temp_df_poll = poll_df[poll_df['Word'].str.match(word)]["Frequency"].tolist()
+        temp_df_poll = poll_df[poll_df['Word'] == word]["Frequency"].tolist()
 
-            if len(temp_df_poll) == 0:
-                temp_df_poll.append(0)
+        # temp_df_poll = poll_df[poll_df['Word'].str.contains(word[0], regex=False, case=False, na=False)][
+        #     'Frequency'].tolist()
 
-            # print("SHOWDF:", temp_df_show_hn)
-            # print("ASKHN:", temp_df_ask_hn)
-            # print("POLLDF:", temp_df_poll)
-            # print("STORYDF:", temp_df_story)
+        if len(temp_df_poll) == 0:
+            temp_df_poll.append(0)
 
-            # sum_of_count_classes = temp_df_show_hn[0] + temp_df_poll[0] + temp_df_ask_hn[0] + temp_df_story[0]
+        # print("SHOWDF:", temp_df_show_hn)
+        # print("ASKHN:", temp_df_ask_hn)
+        # print("POLLDF:", temp_df_poll)
+        # print("STORYDF:", temp_df_story)
 
-            p_word_given_show_hn = ((temp_df_show_hn[0] + 0.5) / (show_hn_count + vocabulary_size))
+        # sum_of_count_classes = temp_df_show_hn[0] + temp_df_poll[0] + temp_df_ask_hn[0] + temp_df_story[0]
 
-            p_word_given_ask_hn = ((temp_df_ask_hn[0] + 0.5) / (ask_hn_count + vocabulary_size))
+        p_word_given_show_hn = ((temp_df_show_hn[0] + 0.5) / (show_hn_count + vocabulary_size))
 
-            p_word_given_poll = ((temp_df_poll[0] + 0.5) / (poll_count + vocabulary_size))
+        p_word_given_ask_hn = ((temp_df_ask_hn[0] + 0.5) / (ask_hn_count + vocabulary_size))
 
-            p_word_given_story = ((temp_df_story[0] + 0.5) / (story_count + vocabulary_size))
+        p_word_given_poll = ((temp_df_poll[0] + 0.5) / (poll_count + vocabulary_size))
 
-            # p_word_given_show_hn = int(p_word_given_show_hn * 10 ** 10) / 10.0 ** 10
-            # p_word_given_ask_hn = int(p_word_given_ask_hn * 10 ** 10) / 10.0 ** 10
-            # p_word_given_poll = int(p_word_given_poll * 10 ** 10) / 10.0 ** 10
-            # p_word_given_story = int(p_word_given_story * 10 ** 10) / 10.0 ** 10
+        p_word_given_story = ((temp_df_story[0] + 0.5) / (story_count + vocabulary_size))
 
-            # score_show_hn = score_show_hn * p_word_given_show_hn
-            #
-            # score_ask_hn = score_ask_hn * p_word_given_ask_hn
-            #
-            # score_poll = score_poll * p_word_given_poll
-            #
-            # score_story = score_story * p_word_given_story
+        # p_word_given_show_hn = int(p_word_given_show_hn * 10 ** 10) / 10.0 ** 10
+        # p_word_given_ask_hn = int(p_word_given_ask_hn * 10 ** 10) / 10.0 ** 10
+        # p_word_given_poll = int(p_word_given_poll * 10 ** 10) / 10.0 ** 10
+        # p_word_given_story = int(p_word_given_story * 10 ** 10) / 10.0 ** 10
 
-            # temp_df_show_hn = show_hn_df[show_hn_df['Word'].str.contains(word[0], regex=False, case=False, na=False)][
-            #     'Frequency'].tolist()
-            # if len(temp_df_show_hn) == 0:
-            #     temp_df_show_hn.append(0)
-            # p_word_given_show_hn = int(
-            #     ((temp_df_show_hn[0] + 0.5) / (show_hn_count + vocabulary_size)) * 10 ** 10) / 10.0 ** 10
-            #
-            # temp_df_ask_hn = ask_hn_df[ask_hn_df['Word'].str.contains(word[0], regex=False, case=False, na=False)][
-            #     'Frequency'].tolist()
-            # if len(temp_df_ask_hn) == 0:
-            #     temp_df_ask_hn.append(0)
-            # p_word_given_ask_hn = int(
-            #     ((temp_df_ask_hn[0] + 0.5) / (ask_hn_count + vocabulary_size)) * 10 ** 10) / 10.0 ** 10
-            #
-            # temp_df_story = story_df[story_df['Word'].str.contains(word[0], regex=False, case=False, na=False)][
-            #     'Frequency'].tolist()
-            # if len(temp_df_story) == 0:
-            #     temp_df_story.append(0)
-            # p_word_given_story = int(
-            #     ((temp_df_story[0] + 0.5) / (story_count + vocabulary_size)) * 10 ** 10) / 10.0 ** 10
-            #
-            # temp_df_poll = poll_df[poll_df['Word'].str.contains(word[0], regex=False, case=False, na=False)][
-            #     'Frequency'].tolist()
-            # if len(temp_df_poll) == 0:
-            #     temp_df_poll.append(0)
-            # p_word_given_poll = int(((temp_df_poll[0] + 0.5) / (poll_count + vocabulary_size)) * 10 ** 10) / 10.0 ** 10
-            #
-            # file.write(str(line_count) + " " + str(word) + " " + str(temp_df_story[0]) + " " + str(
-            #     p_word_given_story) + " " + str(
-            #     temp_df_ask_hn[0]) + " " + str(p_word_given_ask_hn) + " " + str(
-            #     temp_df_show_hn[0]) + " " + str(
-            #     p_word_given_show_hn) + " " + str(temp_df_poll[0]) + " " + str(
-            #     p_word_given_poll) + " " + '\n')
-            line_count += 1
-            # exit(0)
+        # score_show_hn = score_show_hn * p_word_given_show_hn
+        #
+        # score_ask_hn = score_ask_hn * p_word_given_ask_hn
+        #
+        # score_poll = score_poll * p_word_given_poll
+        #
+        # score_story = score_story * p_word_given_story
 
-            p_ask_hn_list.append(p_word_given_ask_hn)
-            p_show_hn_list.append(p_word_given_show_hn)
-            p_story_list.append(p_word_given_story)
-            p_poll_list.append(p_word_given_poll)
-            word_list.append(word)
+        # temp_df_show_hn = show_hn_df[show_hn_df['Word'].str.contains(word[0], regex=False, case=False, na=False)][
+        #     'Frequency'].tolist()
+        # if len(temp_df_show_hn) == 0:
+        #     temp_df_show_hn.append(0)
+        # p_word_given_show_hn = int(
+        #     ((temp_df_show_hn[0] + 0.5) / (show_hn_count + vocabulary_size)) * 10 ** 10) / 10.0 ** 10
+        #
+        # temp_df_ask_hn = ask_hn_df[ask_hn_df['Word'].str.contains(word[0], regex=False, case=False, na=False)][
+        #     'Frequency'].tolist()
+        # if len(temp_df_ask_hn) == 0:
+        #     temp_df_ask_hn.append(0)
+        # p_word_given_ask_hn = int(
+        #     ((temp_df_ask_hn[0] + 0.5) / (ask_hn_count + vocabulary_size)) * 10 ** 10) / 10.0 ** 10
+        #
+        # temp_df_story = story_df[story_df['Word'].str.contains(word[0], regex=False, case=False, na=False)][
+        #     'Frequency'].tolist()
+        # if len(temp_df_story) == 0:
+        #     temp_df_story.append(0)
+        # p_word_given_story = int(
+        #     ((temp_df_story[0] + 0.5) / (story_count + vocabulary_size)) * 10 ** 10) / 10.0 ** 10
+        #
+        # temp_df_poll = poll_df[poll_df['Word'].str.contains(word[0], regex=False, case=False, na=False)][
+        #     'Frequency'].tolist()
+        # if len(temp_df_poll) == 0:
+        #     temp_df_poll.append(0)
+        # p_word_given_poll = int(((temp_df_poll[0] + 0.5) / (poll_count + vocabulary_size)) * 10 ** 10) / 10.0 ** 10
+        #
+        # print(exp)
+        if exp == 1:
+            # print("Inside exp:", exp)
+            file = open("model-2018.txt", "a")
+            file.write(str(line_count) + " " + str(word) + " " + str(temp_df_story[0]) + " " + str(
+                p_word_given_story) + " " + str(
+                temp_df_ask_hn[0]) + " " + str(p_word_given_ask_hn) + " " + str(
+                temp_df_show_hn[0]) + " " + str(
+                p_word_given_show_hn) + " " + str(temp_df_poll[0]) + " " + str(
+                p_word_given_poll) + " " + '\n')
+            file.close()
+        elif exp == 2:
+            file = open("stopword-model.txt", "a")
+            file.write(str(line_count) + " " + str(word) + " " + str(temp_df_story[0]) + " " + str(
+                p_word_given_story) + " " + str(
+                temp_df_ask_hn[0]) + " " + str(p_word_given_ask_hn) + " " + str(
+                temp_df_show_hn[0]) + " " + str(
+                p_word_given_show_hn) + " " + str(temp_df_poll[0]) + " " + str(
+                p_word_given_poll) + " " + '\n')
+            file.close()
+        line_count += 1
+        # exit(0)
+
+        p_ask_hn_list.append(p_word_given_ask_hn)
+        p_show_hn_list.append(p_word_given_show_hn)
+        p_story_list.append(p_word_given_story)
+        p_poll_list.append(p_word_given_poll)
+        word_list.append(word)
+
 
     end_time = time.process_time() - start_time
     print("Time to train:", end_time)
@@ -428,6 +443,7 @@ def train(freq_dict, exp):
     experiments.baseline(class_probability, df_testing, model_df_show_hn, model_df_ask_hn, model_df_poll,
                          model_df_story, exp)
 
+
     # print(story_df)
     # print(df)
 
@@ -459,5 +475,5 @@ def get_wordnet_pos(treebank_tag):
 
 
 if __name__ == '__main__':
-    read_file(0)
+    read_file()
     experiments.select_experiment()
