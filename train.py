@@ -5,11 +5,21 @@ import experiments
 import time
 
 
-def read_file():
+# nltk.download('averaged_perceptron_tagger')
+# nltk.download('wordnet')
+
+
+def read_file(exp=1):
+    # experiments.stop_word_filtering()
+    # exit(0)
     global df_testing
     global df_training
 
+    # if stop_word is False:
     df = pd.read_csv("./hn2018_2019.csv")
+    # else:
+    #     df = dataset
+
     df['date'] = pd.to_datetime(df['Created At'])
     start_date = '2018-01-01 00:00:00'
     end_date = '2018-12-31 00:00:00'
@@ -34,11 +44,12 @@ def read_file():
     df_training = df.loc[mask_2018]
     df_testing = df.loc[mask_2019]
 
-    build_vocabulary(pd.read_csv("./sample.csv"))
+    build_vocabulary(pd.read_csv("./sample.csv"), exp)
+
     # print(df.tail(5))
 
 
-def build_vocabulary(df):
+def build_vocabulary(df, exp):
     # word_list = []
 
     global word_freq_dict
@@ -53,6 +64,11 @@ def build_vocabulary(df):
     # print(freq_df)
     # exit(0)
 
+    if exp == 2:
+        stop_words_df = pd.read_csv("./Stopwords.txt")
+        # data = pd.read_csv("./sample.csv")
+        stop_words = stop_words_df["a"].tolist()
+
     for title in df['Title']:
         tokenizer = nltk.RegexpTokenizer(r"\w+", False, True)
         # tokenizer = nltk.RegexpTokenizer(r"\w+(?:[-']\w+)*|'|[-.(]+|\S\w*")
@@ -60,6 +76,13 @@ def build_vocabulary(df):
         # raw = nltk.word_tokenize(title.lower())
 
         raw = tokenizer.tokenize(title.lower())
+
+        if exp == 2:
+            # print("RAW BEFORE:", raw)
+            raw = list(set(raw).difference(stop_words))
+            title = ' '.join([str(elem) for elem in raw])
+            # print(raw)
+
         # raw = nltk.TreebankWordTokenizer().tokenize(title.lower())
         # raw = nltk.WhitespaceTokenizer().tokenize(title.lower())
 
@@ -80,7 +103,7 @@ def build_vocabulary(df):
         for key, val in od.items():
             file.write(str(key) + " " + str(val) + "\n")
 
-    train(od)
+    train(od, exp)
 
     total_time = time.process_time() - start_time
     print('TOTAL TIME TAKEN IN (S):', total_time)
@@ -89,6 +112,7 @@ def build_vocabulary(df):
     #     for k, v in counts.items(): f.write(f'{k} {v}\n')
 
     # print("TITLE:", df.at[0, 'Title'])
+    # return od
 
 
 def tokenize_word(raw, title, df, j, testing=False):
@@ -127,7 +151,7 @@ def tokenize_word(raw, title, df, j, testing=False):
                     # if word[1].lower() in raw:
                     # print("After remove")
                     # print(each_element, " ", raw)
-                    index2 = raw.index(word[1].lower())
+                    raw.index(word[1].lower())
                     # else:
                     #     print("ndkcha")
                     #     raw.append(word[0])
@@ -198,7 +222,7 @@ def tokenize_word(raw, title, df, j, testing=False):
         return j
 
 
-def train(freq_dict):
+def train(freq_dict, exp):
     dict_keys = freq_dict.keys()
     freq = list(freq_dict.values())
     word = []
@@ -240,10 +264,15 @@ def train(freq_dict):
 
     print("Size:", vocabulary_size)
 
-    class_probability_show_hn = show_hn_count / total_words
-    class_probability_ask_hn = ask_hn_count / total_words
-    class_probability_poll = poll_count / total_words
-    class_probability_story = story_count / total_words
+    class_probability_show_hn = (show_hn_count / total_words)
+    class_probability_ask_hn = (ask_hn_count / total_words)
+    class_probability_poll = (poll_count / total_words)
+    class_probability_story = (story_count / total_words)
+
+    # class_probability_show_hn = int(class_probability_show_hn * 10 ** 10) / 10.0 ** 10
+    # class_probability_ask_hn = int(class_probability_ask_hn * 10 ** 10) / 10.0 ** 10
+    # class_probability_poll = int(class_probability_poll * 10 ** 10) / 10.0 ** 10
+    # class_probability_story = int(class_probability_story * 10 ** 10) / 10.0 ** 10
 
     line_count = 1
     with open('model-2018.txt', 'w') as file:
@@ -309,6 +338,11 @@ def train(freq_dict):
             p_word_given_poll = ((temp_df_poll[0] + 0.5) / (poll_count + vocabulary_size))
 
             p_word_given_story = ((temp_df_story[0] + 0.5) / (story_count + vocabulary_size))
+
+            # p_word_given_show_hn = int(p_word_given_show_hn * 10 ** 10) / 10.0 ** 10
+            # p_word_given_ask_hn = int(p_word_given_ask_hn * 10 ** 10) / 10.0 ** 10
+            # p_word_given_poll = int(p_word_given_poll * 10 ** 10) / 10.0 ** 10
+            # p_word_given_story = int(p_word_given_story * 10 ** 10) / 10.0 ** 10
 
             # score_show_hn = score_show_hn * p_word_given_show_hn
             #
@@ -392,7 +426,7 @@ def train(freq_dict):
     # df_testing.to_csv("./df_testing.csv")
 
     experiments.baseline(class_probability, df_testing, model_df_show_hn, model_df_ask_hn, model_df_poll,
-                         model_df_story)
+                         model_df_story, exp)
 
     # print(story_df)
     # print(df)
@@ -425,4 +459,5 @@ def get_wordnet_pos(treebank_tag):
 
 
 if __name__ == '__main__':
-    read_file()
+    read_file(0)
+    experiments.select_experiment()

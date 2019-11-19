@@ -1,23 +1,76 @@
 import pandas as pd
-import nltk, math
+import gc
+import nltk
 import train
 import operator
 from sklearn.metrics import accuracy_score
 
+labels = {
+    "poll": 0,
+    "show_hn": 1,
+    "ask_hn": 2,
+    "story": 3
+}
 
-def baseline(class_probability, df_testing, model_show_hn, model_ask_hn, model_poll, model_story):
+
+def baseline(class_probability, df_testing, model_show_hn, model_ask_hn, model_poll, model_story, exp):
+    gc.collect()
     print('IN baseline method')
-    j = df_testing.first_valid_index()
+    df_testing = pd.read_csv("./sample_testing.csv")
 
+    test_labels, predictions, title = classify(class_probability, df_testing, model_show_hn, model_ask_hn, model_poll,
+                                        model_story, exp)
+
+    # exit(0)
+
+    # int(hypothesis_poll * 10 ** 10) / 10.0 ** 10)
+    # int(hypothesis_show_hn * 10 ** 10) / 10.0 ** 10)
+    # int(hypothesis_ask_hn * 10 ** 10) / 10.0 ** 10)
+    # int(hypothesis_story * 10 ** 10) / 10.0 ** 10)
+
+    # print('Bigrm:', bigrams)
+    # print('Pos:', pos)
+    # print('Pos1:', pos_dict)
+
+    # Create and write to appropriate file
+
+    accuracy = accuracy_score(test_labels, predictions)
+    print("Accuracy:", accuracy)
+
+
+def stop_word_filtering():
+    global stop_words
+    # global start_time
+    # word_freq_dict = {}
+
+    stop_words_df = pd.read_csv("./Stopwords.txt")
+    # data = pd.read_csv("./sample.csv")
+    stop_words = stop_words_df["a"].tolist()
+
+    # print(set_stop_words)
+    # new_data = data["Title"].apply(lambda x: [item for item in x if item not in stop_words["a"].tolist()])
+
+    # data['Title'] = data.Title.str.replace("[^\w\s]", "").str.lower()
+
+    # data['Title'] = data['Title'].apply(lambda x: [item for item in x.split() if item not in stop_words["a"].tolist()])
+    print("IN STOP WORD FILTERING")
+    train.read_file(2)
+
+
+def classify(class_probability, df_testing, model_show_hn, model_ask_hn, model_poll, model_story, exp):
+    title_list = []
     test_labels = []
     predictions = []
 
-    # df_testing = pd.read_csv("./sample_testing.csv")
+    j = df_testing.first_valid_index()
+    # print(df_testing)
 
-    for index, row in df_testing.head(1000).iterrows():
+    for index, row in df_testing.iterrows():
+        filtered_raw = []
         # print("Row:", row["Post Type"])
         # exit(0)
-        post_type = df_testing[df_testing['Title'] == row["Title"]]['Post Type'].tolist()
+        title = row["Title"]
+        post_type = row["Post Type"]
         # print('Post Type:', post_type)
 
         # hypothesis_story = 0.0
@@ -32,9 +85,17 @@ def baseline(class_probability, df_testing, model_show_hn, model_ask_hn, model_p
 
         tokenizer = nltk.RegexpTokenizer(r"\w+", False, True)
 
-        raw = tokenizer.tokenize(row["Title"].lower())
+        raw = tokenizer.tokenize(title.lower())
 
-        j, word_list = train.tokenize_word(raw, row["Title"], df_testing, j, True)
+        if exp == 2:
+            # print("RAW BEFORE:", raw)
+            raw = list(set(raw).difference(stop_words))
+            title = ' '.join([str(elem) for elem in raw])
+            # print(raw)
+
+        # print(title)
+
+        j, word_list = train.tokenize_word(raw, title, df_testing, j, True)
         # print(word_list)
 
         # 0: show_hn
@@ -73,18 +134,16 @@ def baseline(class_probability, df_testing, model_show_hn, model_ask_hn, model_p
             if len(p_conditional_poll) != 0:
                 hypothesis_poll *= p_conditional_poll[0]
 
+            # del p_conditional_story
+            # del p_conditional_ask_hn
+            # del p_conditional_poll
+            # del p_conditional_show_hn
+
         answer = {
             "poll": hypothesis_poll,
             "show_hn": hypothesis_show_hn,
             "ask_hn": hypothesis_ask_hn,
             "story": hypothesis_story
-        }
-
-        legend = {
-            "poll": 0,
-            "show_hn": 1,
-            "ask_hn": 2,
-            "story": 3
         }
 
         # print("POLL:", hypothesis_poll)
@@ -93,21 +152,27 @@ def baseline(class_probability, df_testing, model_show_hn, model_ask_hn, model_p
         # print("Story:", hypothesis_story)
 
         # print(max(hypothesis_show_hn, hypothesis_ask_hn, hypothesis_poll, hypothesis_story))
-        print("predicted: ['", max(answer.items(), key=operator.itemgetter(1))[0], "'] actual:", post_type, ' title:', row["Title"])
-        # print(max(answer.items(), key=operator.itemgetter(1))[0])
-        # print(legend.get(post_type[0]))
-        test_labels.append(legend.get(post_type[0]))
-        predictions.append(legend.get(max(answer.items(), key=operator.itemgetter(1))[0]))
-        # exit(0)
+        print("predicted: ['", max(answer.items(), key=operator.itemgetter(1))[0], "'] actual:", post_type, ' title:',
+              title)
+        # print(labels.get(post_type[0]))
+        title_list.append(title)
+        test_labels.append(labels.get(post_type))
+        predictions.append(labels.get(max(answer.items(), key=operator.itemgetter(1))[0]))
 
-        # int(hypothesis_poll * 10 ** 10) / 10.0 ** 10)
-        # int(hypothesis_show_hn * 10 ** 10) / 10.0 ** 10)
-        # int(hypothesis_ask_hn * 10 ** 10) / 10.0 ** 10)
-        # int(hypothesis_story * 10 ** 10) / 10.0 ** 10)
+    return test_labels, predictions, title
 
-        # print('Bigrm:', bigrams)
-        # print('Pos:', pos)
-        # print('Pos1:', pos_dict)
 
-    accuracy = accuracy_score(test_labels, predictions)
-    print("Accuracy:", accuracy)
+def select_experiment():
+    user_input = 0
+
+    while user_input != -1:
+        print("Choose your experiment")
+        print("2. Perform Stopwords")
+        print("3. Word length Filtering")
+        print("4. Infrequent Word Filtering")
+        print("5. Smoothing\n")
+        print("Type '-1' to exit")
+        user_input = int(input("Enter your choice:"))
+
+        if user_input == 2:
+            stop_word_filtering()

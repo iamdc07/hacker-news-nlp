@@ -10,4 +10,5 @@ ask_hn.csv
 .DS_Store
 df_testing*
 model_df*
+Stopwords.txt
 sample_testing.csv
