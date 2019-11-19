@@ -42,6 +42,7 @@ def build_vocabulary(df):
     # word_list = []
 
     global word_freq_dict
+    global start_time
     word_freq_dict = {}
 
     j = 0
@@ -75,9 +76,9 @@ def build_vocabulary(df):
 
     # a = dict(sorted(counts.items()))
 
-    # with open('frequency_dict.txt', 'w') as file:
-    #     for key, val in od.items():
-    #         file.write(str(key) + " " + str(val) + "\n")
+    with open('frequency_dict.txt', 'w') as file:
+        for key, val in od.items():
+            file.write(str(key) + " " + str(val) + "\n")
 
     train(od)
 
@@ -87,7 +88,7 @@ def build_vocabulary(df):
     # with open('frequency_ngram.txt', 'w') as f:
     #     for k, v in counts.items(): f.write(f'{k} {v}\n')
 
-    print("TITLE:", df.at[0, 'Title'])
+    # print("TITLE:", df.at[0, 'Title'])
 
 
 def tokenize_word(raw, title, df, j, testing=False):
@@ -141,7 +142,7 @@ def tokenize_word(raw, title, df, j, testing=False):
                         freq = word_freq_dict.get(temp)
                         if freq is None:
                             word_freq_dict[temp] = 1
-                        elif testing:
+                        else:
                             freq += 1
                             word_freq_dict[temp] = freq
                     else:
@@ -174,7 +175,7 @@ def tokenize_word(raw, title, df, j, testing=False):
             value = word_freq_dict.get(temp)
             if value is None:
                 word_freq_dict[temp] = 1
-            elif testing:
+            else:
                 value += 1
                 word_freq_dict[temp] = value
         else:
@@ -252,8 +253,9 @@ def train(freq_dict):
         # score_story = class_probability_story
 
         for word in vocabulary:
-            word = word
-            temp_df_show_hn = show_hn_df[show_hn_df['Word'].str.match(word)]["Frequency"].tolist()
+            # word = r'^' + word + '$'
+            # temp_df_show_hn = show_hn_df[show_hn_df['Word'].str.match(word)]["Frequency"].tolist()
+            temp_df_show_hn = show_hn_df[show_hn_df['Word'] == word]["Frequency"].tolist()
 
             # temp_df_show_hn = show_hn_df[show_hn_df['Word'].str.contains(word[0], regex=False, case=False, na=False)][
             #     'Frequency'].tolist()
@@ -261,7 +263,8 @@ def train(freq_dict):
             if len(temp_df_show_hn) == 0:
                 temp_df_show_hn.append(0)
 
-            temp_df_ask_hn = ask_hn_df[ask_hn_df['Word'].str.match(word)]["Frequency"].tolist()
+            # temp_df_ask_hn = ask_hn_df[ask_hn_df['Word'].str.match(word)]["Frequency"].tolist()
+            temp_df_ask_hn = ask_hn_df[ask_hn_df['Word'] == word]["Frequency"].tolist()
 
             # temp_df_ask_hn = ask_hn_df[ask_hn_df['Word'].str.contains(word[0], regex=False, case=False, na=False)][
             #     'Frequency'].tolist()
@@ -270,8 +273,10 @@ def train(freq_dict):
                 temp_df_ask_hn.append(0)
 
             # print(story_df[story_df['Word'].str.match("0")]["Word"].tolist()[0])
-            print(word)
-            temp_df_story = story_df[story_df['Word'].str.match(word)]["Frequency"].tolist()
+
+            # temp_df_story = story_df[story_df['Word'].str.match(word)]["Frequency"].tolist()
+            temp_df_story = story_df[story_df['Word'] == word]["Frequency"].tolist()
+            # print("WORD:", word)
 
             # temp_df_story = story_df[story_df['Word'].str.contains(word[0], regex=False, case=False, na=False)][
             #     'Frequency'].tolist()
@@ -281,7 +286,8 @@ def train(freq_dict):
             if len(temp_df_story) == 0:
                 temp_df_story.append(0)
 
-            temp_df_poll = poll_df[poll_df['Word'].str.match(word)]["Frequency"].tolist()
+            # temp_df_poll = poll_df[poll_df['Word'].str.match(word)]["Frequency"].tolist()
+            temp_df_poll = poll_df[poll_df['Word'] == word]["Frequency"].tolist()
 
             # temp_df_poll = poll_df[poll_df['Word'].str.contains(word[0], regex=False, case=False, na=False)][
             #     'Frequency'].tolist()
@@ -289,10 +295,10 @@ def train(freq_dict):
             if len(temp_df_poll) == 0:
                 temp_df_poll.append(0)
 
-            print("SHOWDF:", temp_df_show_hn)
-            print("ASKHN:", temp_df_ask_hn)
-            print("POLLDF:", temp_df_poll)
-            print("STORYDF:", temp_df_story)
+            # print("SHOWDF:", temp_df_show_hn)
+            # print("ASKHN:", temp_df_ask_hn)
+            # print("POLLDF:", temp_df_poll)
+            # print("STORYDF:", temp_df_story)
 
             # sum_of_count_classes = temp_df_show_hn[0] + temp_df_poll[0] + temp_df_ask_hn[0] + temp_df_story[0]
 
@@ -339,12 +345,12 @@ def train(freq_dict):
             #     temp_df_poll.append(0)
             # p_word_given_poll = int(((temp_df_poll[0] + 0.5) / (poll_count + vocabulary_size)) * 10 ** 10) / 10.0 ** 10
             #
-            # file.write(str(line_count) + " | w " + str(word[0]) + " | f " + str(freq) + " | p " + str(
-            #     p_word_given_story) + " | " + str(
+            # file.write(str(line_count) + " " + str(word) + " " + str(temp_df_story[0]) + " " + str(
+            #     p_word_given_story) + " " + str(
             #     temp_df_ask_hn[0]) + " " + str(p_word_given_ask_hn) + " " + str(
             #     temp_df_show_hn[0]) + " " + str(
             #     p_word_given_show_hn) + " " + str(temp_df_poll[0]) + " " + str(
-            #     p_word_given_poll) + " " + " " + '\n')
+            #     p_word_given_poll) + " " + '\n')
             line_count += 1
             # exit(0)
 
@@ -353,6 +359,9 @@ def train(freq_dict):
             p_story_list.append(p_word_given_story)
             p_poll_list.append(p_word_given_poll)
             word_list.append(word)
+
+    end_time = time.process_time() - start_time
+    print("Time to train:", end_time)
 
     # 0: show_hn
     # 1: ask_hn
