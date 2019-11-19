@@ -9,5 +9,5 @@ story.csv
 ask_hn.csv
 .DS_Store
 df_testing*
-model_df.csv
+model_df*
 sample_testing.csv
