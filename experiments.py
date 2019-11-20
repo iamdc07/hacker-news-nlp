@@ -2,7 +2,6 @@ import pandas as pd
 import gc
 import nltk
 import train
-import sys
 import operator, math
 import numpy as np
 import matplotlib.pyplot as plt
@@ -25,7 +24,7 @@ def baseline(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_pol
              p_story_dict, exp):
     gc.collect()
     print('IN baseline method')
-    # df_testing = pd.read_csv("./sample_testing.csv")
+    df_testing = pd.read_csv("./sample_testing.csv")
 
     test_labels, predictions, title = classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict,
                                                p_poll_dict,
@@ -89,7 +88,7 @@ def infrequent_word_filtering():
     plt.xticks(y_pos, objects)
     plt.xlabel('Frequency')
     plt.ylabel("Accuracy")
-    plt.title('performance of the classifiers against the number of words ')
+    plt.title('Performance of the classifiers against the number of words ')
 
     plt.show()
 
@@ -102,6 +101,22 @@ def infrequent_word_filtering():
         train.read_file(4.5)
         vocab_size.append(no_of_words)
         accuracy_list.append(each_accuracy)
+        i += 5
+
+    objects = ('5%', '10%', '15%', '20%', '25%')
+    y_pos = np.arange(len(objects))
+
+    plt.bar(y_pos, accuracy_list, align='center', alpha=0.5, color=['black', 'red', 'green', 'blue', 'cyan'])
+    plt.xticks(y_pos, objects)
+    plt.xlabel('Frequent words')
+    plt.ylabel("Accuracy")
+    plt.title('Performance of the classifiers against the number of words ')
+
+    plt.show()
+
+def smoothing():
+    print("IN SMOOTHING")
+    accuracy_list = []
 
 
 def classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_poll_dict,
@@ -228,5 +243,5 @@ def select_experiment():
             word_length_filtering()
         elif user_input == 4:
             infrequent_word_filtering()
-        # elif user_input == 5:
-
+        elif user_input == 5:
+            smoothing()

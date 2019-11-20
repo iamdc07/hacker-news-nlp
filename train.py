@@ -7,6 +7,7 @@ from collections import OrderedDict
 
 remove_freq = 1
 remove_percent = 0
+smoothing_value = 0
 
 
 # nltk.download('averaged_perceptron_tagger')
@@ -26,9 +27,9 @@ def read_file(exp=1):
     start_date = '2019-01-01 00:00:00'
     end_date = '2019-12-31 00:00:00'
     mask_2019 = (df['date'] > start_date) & (df['date'] <= end_date)
-    df_training = df.loc[mask_2018]
+    # df_training = df.loc[mask_2018]
     df_testing = df.loc[mask_2019]
-    # df_training = pd.read_csv("./sample.csv")
+    df_training = pd.read_csv("./sample.csv")
 
     build_vocabulary(df_training, exp)
 
@@ -162,16 +163,22 @@ def train(freq_dict, exp):
     p_show_hn_dict = {}
     p_poll_dict = {}
     class_probability = []
+    smoothing = 0.5
 
     if exp == 4:
         new_dict = {k: v for k, v in freq_dict.items() if not (v <= remove_freq)}
         freq_dict = new_dict
-    # elif exp == 4.5:
-    #     sorted_dict_list = sorted(freq_dict.items(), key=operator.itemgetter(1))
-    #     sorted_dict_size = len(sorted_dict_list)
-    #     new_dict_list = int(sorted_dict_size * remove_percent)
-    #     print(new_dict_list)
-    #     exit(0)
+    elif exp == 4.5:
+        sorted_dict_list = sorted(freq_dict.items(), key=operator.itemgetter(1))
+        remove_elements = int(len(sorted_dict_list) * remove_percent)
+        new_dict_list = sorted_dict_list[remove_elements:]
+        # print("OLD LIST SIZE:", len(sorted_dict_list), " NEW LIST SIZE:", len(new_dict_list), " REMOVE:",
+        #       remove_elements)
+        freq_dict = dict(new_dict_list)
+        # print(freq_dict)
+        # exit(0)
+    elif exp == 5:
+        smoothing = smoothing_value
 
     dict_keys = freq_dict.keys()
     freq = list(freq_dict.values())
@@ -248,13 +255,13 @@ def train(freq_dict, exp):
 
         temp_poll_freq = poll_words[word] if word in poll_words else 0
 
-        p_word_given_show_hn = ((temp_show_hn_freq + 0.5) / (show_hn_count + vocabulary_size))
+        p_word_given_show_hn = ((temp_show_hn_freq + smoothing) / (show_hn_count + vocabulary_size))
 
-        p_word_given_ask_hn = ((temp_ask_hn_freq + 0.5) / (ask_hn_count + vocabulary_size))
+        p_word_given_ask_hn = ((temp_ask_hn_freq + smoothing) / (ask_hn_count + vocabulary_size))
 
-        p_word_given_poll = ((temp_poll_freq + 0.5) / (poll_count + vocabulary_size))
+        p_word_given_poll = ((temp_poll_freq + smoothing) / (poll_count + vocabulary_size))
 
-        p_word_given_story = ((temp_story_freq + 0.5) / (story_count + vocabulary_size))
+        p_word_given_story = ((temp_story_freq + smoothing) / (story_count + vocabulary_size))
 
         p_word_given_show_hn = p_word_given_show_hn
         p_word_given_ask_hn = p_word_given_ask_hn
@@ -320,7 +327,7 @@ def train(freq_dict, exp):
     accuracy = experiments.baseline(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_poll_dict,
                                     p_story_dict, exp)
 
-    if exp == 4:
+    if exp == 4 or exp == 4.5:
         experiments.each_accuracy = accuracy
 
 
