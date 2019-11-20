@@ -244,6 +244,11 @@ def train(freq_dict, exp):
     # class_probability_poll = int(class_probability_poll * 10 ** 10) / 10.0 ** 10
     # class_probability_story = int(class_probability_story * 10 ** 10) / 10.0 ** 10
 
+    if smoothing == 0:
+        vocabulary_size = 0
+
+    print("Vocabulary:", vocabulary_size)
+
     line_count = 1
 
     for word in vocabulary:
@@ -327,7 +332,7 @@ def train(freq_dict, exp):
     accuracy = experiments.baseline(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_poll_dict,
                                     p_story_dict, exp)
 
-    if exp == 4 or exp == 4.5:
+    if exp == 4 or exp == 4.5 or exp == 5:
         experiments.each_accuracy = accuracy
 
 

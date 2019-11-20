@@ -97,7 +97,7 @@ def infrequent_word_filtering():
     accuracy_list.clear()
 
     while i <= 25:
-        train.remove_percent = i/100
+        train.remove_percent = i / 100
         train.read_file(4.5)
         vocab_size.append(no_of_words)
         accuracy_list.append(each_accuracy)
@@ -114,9 +114,31 @@ def infrequent_word_filtering():
 
     plt.show()
 
+
 def smoothing():
     print("IN SMOOTHING")
     accuracy_list = []
+    smoothing_list = []
+
+    i = 0
+
+    while i <= 1:
+        train.smoothing_value = i
+        train.read_file(5)
+        accuracy_list.append(each_accuracy)
+        smoothing_list.append(i)
+        i += 0.1
+
+    objects = ('0', '0.1', '0.2', '0.3', '0.4', '0.5', '0.6', '0.7', '0.8', '0.9', '1')
+    y_pos = np.arange(len(objects))
+
+    plt.bar(y_pos, accuracy_list, align='center', alpha=0.5, color=['black', 'red', 'green', 'blue', 'cyan'])
+    plt.xticks(y_pos, objects)
+    plt.xlabel('Smoothing')
+    plt.ylabel("Accuracy")
+    plt.title('Performance of the classifiers against the variation in smoothing ')
+
+    plt.show()
 
 
 def classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_poll_dict,
@@ -164,23 +186,27 @@ def classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_pol
 
             if each_word in p_story_dict:
                 p_conditional_story = p_story_dict[each_word]
-                hypothesis_story += math.log10(p_conditional_story)
-                hypothesis_story = int(hypothesis_story * 10 ** 10) / 10.0 ** 10
+                if p_conditional_story != 0:
+                    hypothesis_story += math.log10(p_conditional_story)
+                    hypothesis_story = int(hypothesis_story * 10 ** 10) / 10.0 ** 10
 
             if each_word in p_ask_hn_dict:
                 p_conditional_ask_hn = p_ask_hn_dict[each_word]
-                hypothesis_ask_hn += math.log10(p_conditional_ask_hn)
-                hypothesis_ask_hn = int(hypothesis_ask_hn * 10 ** 10) / 10.0 ** 10
+                if p_conditional_ask_hn != 0:
+                    hypothesis_ask_hn += math.log10(p_conditional_ask_hn)
+                    hypothesis_ask_hn = int(hypothesis_ask_hn * 10 ** 10) / 10.0 ** 10
 
             if each_word in p_show_hn_dict:
                 p_conditional_show_hn = p_show_hn_dict[each_word]
-                hypothesis_show_hn += math.log10(p_conditional_show_hn)
-                hypothesis_show_hn = int(hypothesis_show_hn * 10 ** 10) / 10.0 ** 10
+                if p_conditional_show_hn != 0:
+                    hypothesis_show_hn += math.log10(p_conditional_show_hn)
+                    hypothesis_show_hn = int(hypothesis_show_hn * 10 ** 10) / 10.0 ** 10
 
             if each_word in p_poll_dict:
                 p_conditional_poll = p_poll_dict[each_word]
-                hypothesis_poll += math.log10(p_conditional_poll)
-                hypothesis_poll = int(hypothesis_poll * 10 ** 10) / 10.0 ** 10
+                if p_conditional_poll != 0:
+                    hypothesis_poll += math.log10(p_conditional_poll)
+                    hypothesis_poll = int(hypothesis_poll * 10 ** 10) / 10.0 ** 10
 
         answer = {
             "poll": hypothesis_poll,
