@@ -2,9 +2,11 @@ import pandas as pd
 import nltk, math
 import experiments
 import time
+import operator
 from collections import OrderedDict
 
 remove_freq = 1
+remove_percent = 0
 
 
 # nltk.download('averaged_perceptron_tagger')
@@ -26,8 +28,9 @@ def read_file(exp=1):
     mask_2019 = (df['date'] > start_date) & (df['date'] <= end_date)
     df_training = df.loc[mask_2018]
     df_testing = df.loc[mask_2019]
+    # df_training = pd.read_csv("./sample.csv")
 
-    build_vocabulary(pd.read_csv("./sample.csv"), exp)
+    build_vocabulary(df_training, exp)
 
 
 def build_vocabulary(df, exp):
@@ -72,6 +75,7 @@ def build_vocabulary(df, exp):
 
 
 def tokenize_word(raw, title, df, j, testing=False):
+    words_removed = []
     bigrams = []
     word_list = []
 
@@ -116,8 +120,10 @@ def tokenize_word(raw, title, df, j, testing=False):
         wordnet_tag = get_wordnet_pos(each_word[1])
 
         if each_word[1] == "FW" or each_word[1] == "CD":
+            words_removed.append(each_word[0])
             continue
         if len(each_word[0]) == 1 and not (each_word[0] == "a" or each_word[0] == "i"):
+            words_removed.append(each_word[0])
             continue
 
         word_lemm = lemmatizer.lemmatize(each_word[0], wordnet_tag)
@@ -136,6 +142,10 @@ def tokenize_word(raw, title, df, j, testing=False):
 
     j += 1
     pos.clear()
+
+    with open("./vocabulary.txt", "w") as file:
+        for element in words_removed:
+            file.write(element)
 
     if testing:
         return j, word_list
@@ -156,6 +166,12 @@ def train(freq_dict, exp):
     if exp == 4:
         new_dict = {k: v for k, v in freq_dict.items() if not (v <= remove_freq)}
         freq_dict = new_dict
+    # elif exp == 4.5:
+    #     sorted_dict_list = sorted(freq_dict.items(), key=operator.itemgetter(1))
+    #     sorted_dict_size = len(sorted_dict_list)
+    #     new_dict_list = int(sorted_dict_size * remove_percent)
+    #     print(new_dict_list)
+    #     exit(0)
 
     dict_keys = freq_dict.keys()
     freq = list(freq_dict.values())
@@ -166,11 +182,16 @@ def train(freq_dict, exp):
         post_type.append(word_class[1])
 
     df = pd.DataFrame({'Word': word, 'Class': post_type, 'Frequency': freq})
-    df.to_csv("Vocabulary.csv")
+    # df.to_csv("vocabulary.csv")
     story_df = df[df.Class.str.match('story', case=False)]
     ask_hn_df = df[df.Class.str.match('ask_hn', case=False)]
     show_hn_df = df[df.Class.str.match('show_hn', case=False)]
     poll_df = df[df.Class.str.match('poll', case=False)]
+
+    story_dft = df_training[df_training["Post Type"].str.match('story', case=False)]
+    ask_hn_dft = df_training[df_training["Post Type"].str.match('ask_hn', case=False)]
+    show_hn_dft = df_training[df_training["Post Type"].str.match('show_hn', case=False)]
+    poll_dft = df_training[df_training["Post Type"].str.match('poll', case=False)]
 
     show_hn_words = dict(zip(show_hn_df.Word, show_hn_df.Frequency))
     ask_hn_words = dict(zip(ask_hn_df.Word, ask_hn_df.Frequency))
@@ -191,10 +212,25 @@ def train(freq_dict, exp):
 
     print("Size:", vocabulary_size)
 
-    class_probability_show_hn = (show_hn_count / total_words)
-    class_probability_ask_hn = (ask_hn_count / total_words)
-    class_probability_poll = (poll_count / total_words)
-    class_probability_story = (story_count / total_words)
+    story_dft.to_csv("./story_dft.csv")
+    ask_hn_dft.to_csv("./ask_hn_dft.csv")
+    show_hn_dft.to_csv("./show_hn_dft.csv")
+    poll_dft.to_csv("./poll_dft.csv")
+
+    class_probability_show_hn = (len(show_hn_dft.index) / len(df_training.index))
+    class_probability_ask_hn = (len(ask_hn_dft.index) / len(df_training.index))
+    class_probability_poll = (len(poll_dft.index) / len(df_training.index))
+    class_probability_story = (len(story_dft.index) / len(df_training.index))
+
+    # print("class_probability_show_hn: ", class_probability_show_hn)
+    # print("class_probability_ask_hn: ", class_probability_ask_hn)
+    # print("class_probability_poll: ", class_probability_poll)
+    # print("class_probability_story: ", class_probability_story)
+
+    # class_probability_show_hn = class_probability_show_hn
+    # class_probability_ask_hn = class_probability_ask_hn
+    # class_probability_poll = class_probability_poll
+    # class_probability_story = class_probability_story
 
     # class_probability_show_hn = int(class_probability_show_hn * 10 ** 10) / 10.0 ** 10
     # class_probability_ask_hn = int(class_probability_ask_hn * 10 ** 10) / 10.0 ** 10
@@ -204,46 +240,62 @@ def train(freq_dict, exp):
     line_count = 1
 
     for word in vocabulary:
-        temp_df_show_hn_freq = show_hn_words[word] if word in show_hn_words else 0
+        temp_show_hn_freq = show_hn_words[word] if word in show_hn_words else 0
 
-        temp_df_ask_hn_freq = ask_hn_words[word] if word in ask_hn_words else 0
+        temp_ask_hn_freq = ask_hn_words[word] if word in ask_hn_words else 0
 
-        temp_df_story_freq = story_words[word] if word in story_words else 0
+        temp_story_freq = story_words[word] if word in story_words else 0
 
-        temp_df_poll_freq = poll_words[word] if word in poll_words else 0
+        temp_poll_freq = poll_words[word] if word in poll_words else 0
 
-        p_word_given_show_hn = ((temp_df_show_hn_freq + 0.5) / (show_hn_count + vocabulary_size))
+        p_word_given_show_hn = ((temp_show_hn_freq + 0.5) / (show_hn_count + vocabulary_size))
 
-        p_word_given_ask_hn = ((temp_df_ask_hn_freq + 0.5) / (ask_hn_count + vocabulary_size))
+        p_word_given_ask_hn = ((temp_ask_hn_freq + 0.5) / (ask_hn_count + vocabulary_size))
 
-        p_word_given_poll = ((temp_df_poll_freq + 0.5) / (poll_count + vocabulary_size))
+        p_word_given_poll = ((temp_poll_freq + 0.5) / (poll_count + vocabulary_size))
 
-        p_word_given_story = ((temp_df_story_freq + 0.5) / (story_count + vocabulary_size))
+        p_word_given_story = ((temp_story_freq + 0.5) / (story_count + vocabulary_size))
+
+        p_word_given_show_hn = p_word_given_show_hn
+        p_word_given_ask_hn = p_word_given_ask_hn
+        p_word_given_poll = p_word_given_poll
+        p_word_given_story = p_word_given_story
+
+        # p_word_given_show_hn = int(p_word_given_show_hn * 10 ** 10) / 10.0 ** 10
+        #
+        # p_word_given_ask_hn = int(p_word_given_ask_hn * 10 ** 10) / 10.0 ** 10
+        #
+        # p_word_given_poll = int(p_word_given_poll * 10 ** 10) / 10.0 ** 10
+        #
+        # p_word_given_story = int(p_word_given_story * 10 ** 10) / 10.0 ** 10
 
         if exp == 1:
             file = open("model-2018.txt", "a")
-            file.write(str(line_count) + " " + str(word) + " " + str(temp_df_story_freq) + " " + str(
+            file.write(str(line_count) + " " + str(word) + " " + str(temp_story_freq) + " " + str(
                 p_word_given_story) + " " + str(
-                temp_df_ask_hn_freq) + " " + str(p_word_given_ask_hn) + " " + str(
-                temp_df_show_hn_freq) + " " + str(
-                p_word_given_show_hn) + " " + str(temp_df_poll_freq) + " " + str(
+                temp_ask_hn_freq) + " " + str(p_word_given_ask_hn) + " " + str(
+                temp_show_hn_freq) + " " + str(
+                p_word_given_show_hn) + " " + str(temp_poll_freq) + " " + str(
                 p_word_given_poll) + " " + '\n')
+            file.close()
         elif exp == 2:
             file = open("stopword-model.txt", "a")
-            file.write(str(line_count) + " " + str(word) + " " + str(temp_df_story_freq) + " " + str(
+            file.write(str(line_count) + " " + str(word) + " " + str(temp_story_freq) + " " + str(
                 p_word_given_story) + " " + str(
-                temp_df_ask_hn_freq) + " " + str(p_word_given_ask_hn) + " " + str(
-                temp_df_show_hn_freq) + " " + str(
-                p_word_given_show_hn) + " " + str(temp_df_poll_freq) + " " + str(
+                temp_ask_hn_freq) + " " + str(p_word_given_ask_hn) + " " + str(
+                temp_show_hn_freq) + " " + str(
+                p_word_given_show_hn) + " " + str(temp_poll_freq) + " " + str(
                 p_word_given_poll) + " " + '\n')
+            file.close()
         elif exp == 3:
             file = open("wordlength-model.txt", "a")
-            file.write(str(line_count) + " " + str(word) + " " + str(temp_df_story_freq) + " " + str(
+            file.write(str(line_count) + " " + str(word) + " " + str(temp_story_freq) + " " + str(
                 p_word_given_story) + " " + str(
-                temp_df_ask_hn_freq) + " " + str(p_word_given_ask_hn) + " " + str(
-                temp_df_show_hn_freq) + " " + str(
-                p_word_given_show_hn) + " " + str(temp_df_poll_freq) + " " + str(
+                temp_ask_hn_freq) + " " + str(p_word_given_ask_hn) + " " + str(
+                temp_show_hn_freq) + " " + str(
+                p_word_given_show_hn) + " " + str(temp_poll_freq) + " " + str(
                 p_word_given_poll) + " " + '\n')
+            file.close()
         line_count += 1
 
         p_ask_hn_dict[word] = p_word_given_ask_hn

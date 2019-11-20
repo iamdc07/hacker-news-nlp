@@ -2,7 +2,8 @@ import pandas as pd
 import gc
 import nltk
 import train
-import operator
+import sys
+import operator, math
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score
@@ -24,7 +25,7 @@ def baseline(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_pol
              p_story_dict, exp):
     gc.collect()
     print('IN baseline method')
-    df_testing = pd.read_csv("./sample_testing.csv")
+    # df_testing = pd.read_csv("./sample_testing.csv")
 
     test_labels, predictions, title = classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict,
                                                p_poll_dict,
@@ -34,6 +35,8 @@ def baseline(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_pol
     # int(hypothesis_show_hn * 10 ** 10) / 10.0 ** 10)
     # int(hypothesis_ask_hn * 10 ** 10) / 10.0 ** 10)
     # int(hypothesis_story * 10 ** 10) / 10.0 ** 10)
+
+    # Calculate precision and recall and plot it against the data
 
     accuracy = accuracy_score(test_labels, predictions)
     print("Accuracy:", accuracy)
@@ -57,6 +60,8 @@ def word_length_filtering():
 
 
 def infrequent_word_filtering():
+    # global vocab_size
+    # global accuracy_list
     vocab_size = []
     accuracy_list = []
 
@@ -88,6 +93,16 @@ def infrequent_word_filtering():
 
     plt.show()
 
+    i = 5
+    vocab_size.clear()
+    accuracy_list.clear()
+
+    while i <= 25:
+        train.remove_percent = i/100
+        train.read_file(4.5)
+        vocab_size.append(no_of_words)
+        accuracy_list.append(each_accuracy)
+
 
 def classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_poll_dict,
              p_story_dict, exp):
@@ -108,10 +123,10 @@ def classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_pol
 
         raw = tokenizer.tokenize(title.lower())
 
-        if exp == 2:
-            raw = list(set(raw).difference(stop_words))
-            title = ' '.join([str(elem) for elem in raw])
-        elif exp == 3:
+        # if exp == 2:
+        #     raw = list(set(raw).difference(stop_words))
+        #     title = ' '.join([str(elem) for elem in raw])
+        if exp == 3:
             new_words = [word for word in list(raw) if not (len(word) >= 9 or len(word) <= 2)]
             raw = new_words
             title = ' '.join([str(elem) for elem in new_words])
@@ -123,28 +138,34 @@ def classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_pol
         # 2: poll
         # 3: story
 
-        hypothesis_story = class_probability[3]
-        hypothesis_ask_hn = class_probability[1]
-        hypothesis_show_hn = class_probability[0]
-        hypothesis_poll = class_probability[2]
+        hypothesis_story = math.log10(class_probability[3])
+        hypothesis_ask_hn = math.log10(class_probability[1])
+        hypothesis_show_hn = math.log10(class_probability[0])
+        # print(class_probability[0])
+        # print(class_probability[2])
+        hypothesis_poll = math.log10(class_probability[2])
 
         for each_word in word_list:
 
             if each_word in p_story_dict:
                 p_conditional_story = p_story_dict[each_word]
-                hypothesis_story *= p_conditional_story
+                hypothesis_story += math.log10(p_conditional_story)
+                hypothesis_story = int(hypothesis_story * 10 ** 10) / 10.0 ** 10
 
             if each_word in p_ask_hn_dict:
                 p_conditional_ask_hn = p_ask_hn_dict[each_word]
-                hypothesis_ask_hn *= p_conditional_ask_hn
+                hypothesis_ask_hn += math.log10(p_conditional_ask_hn)
+                hypothesis_ask_hn = int(hypothesis_ask_hn * 10 ** 10) / 10.0 ** 10
 
             if each_word in p_show_hn_dict:
                 p_conditional_show_hn = p_show_hn_dict[each_word]
-                hypothesis_show_hn *= p_conditional_show_hn
+                hypothesis_show_hn += math.log10(p_conditional_show_hn)
+                hypothesis_show_hn = int(hypothesis_show_hn * 10 ** 10) / 10.0 ** 10
 
             if each_word in p_poll_dict:
                 p_conditional_poll = p_poll_dict[each_word]
-                hypothesis_poll *= p_conditional_poll
+                hypothesis_poll += math.log10(p_conditional_poll)
+                hypothesis_poll = int(hypothesis_poll * 10 ** 10) / 10.0 ** 10
 
         answer = {
             "poll": hypothesis_poll,
@@ -207,3 +228,5 @@ def select_experiment():
             word_length_filtering()
         elif user_input == 4:
             infrequent_word_filtering()
+        # elif user_input == 5:
+

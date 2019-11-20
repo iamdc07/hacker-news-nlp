@@ -13,3 +13,7 @@ model_df*
 Stopwords.txt
 sample_testing.csv
 vocabulary.csv
+ask_hn_dft.csv
+show_hn_dft.csv
+poll_dft.csv
+story_dft.csv
