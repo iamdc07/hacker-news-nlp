@@ -3,7 +3,12 @@ import gc
 import nltk
 import train
 import operator
+import numpy as np
+import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score
+
+no_of_words = 0
+each_accuracy = 0
 
 labels = {
     "poll": 0,
@@ -12,12 +17,14 @@ labels = {
     "story": 3
 }
 
+plt.rcdefaults()
+
 
 def baseline(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_poll_dict,
              p_story_dict, exp):
     gc.collect()
     print('IN baseline method')
-    # df_testing = pd.read_csv("./sample_testing.csv")
+    df_testing = pd.read_csv("./sample_testing.csv")
 
     test_labels, predictions, title = classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict,
                                                p_poll_dict,
@@ -30,6 +37,8 @@ def baseline(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_pol
 
     accuracy = accuracy_score(test_labels, predictions)
     print("Accuracy:", accuracy)
+    print("--------------------------------------")
+    return accuracy
 
 
 def stop_word_filtering():
@@ -47,6 +56,39 @@ def word_length_filtering():
     train.read_file(3)
 
 
+def infrequent_word_filtering():
+    vocab_size = []
+    accuracy_list = []
+
+    i = 5
+    print("IN INFREQUENT WORD FILTERING")
+
+    train.read_file(4)
+    vocab_size.append(no_of_words)
+    accuracy_list.append(each_accuracy)
+
+    while i <= 20:
+        train.remove_freq = i
+        train.read_file(4)
+        vocab_size.append(no_of_words)
+        accuracy_list.append(each_accuracy)
+        i += 5
+
+    # print("Vocab:", vocab_size)
+    # print("Accuracy:", accuracy_list)
+
+    objects = ('=1', '<=5', '<=10', '<=15', '<=20')
+    y_pos = np.arange(len(objects))
+
+    plt.bar(y_pos, accuracy_list, align='center', alpha=0.5, color=['black', 'red', 'green', 'blue', 'cyan'])
+    plt.xticks(y_pos, objects)
+    plt.xlabel('Frequency')
+    plt.ylabel("Accuracy")
+    plt.title('performance of the classifiers against the number of words ')
+
+    plt.show()
+
+
 def classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_poll_dict,
              p_story_dict, exp):
     title = "NaN"
@@ -60,7 +102,7 @@ def classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_pol
     for index, row in df_testing.iterrows():
         title = row["Title"]
         post_type = row["Post Type"]
-        print(line_count, " ", title)
+        # print(line_count, " ", title)
 
         tokenizer = nltk.RegexpTokenizer(r"\w+", False, True)
 
@@ -112,8 +154,8 @@ def classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_pol
         }
 
         prediction = max(answer.items(), key=operator.itemgetter(1))[0]
-        print("predicted: ['", prediction, "'] actual:", post_type, ' title:',
-              title)
+        # print("predicted: ['", prediction, "'] actual:", post_type, ' title:',
+        #       title)
         title_list.append(title)
         test_labels.append(labels.get(post_type))
         predictions.append(labels.get(max(answer.items(), key=operator.itemgetter(1))[0]))
@@ -163,3 +205,5 @@ def select_experiment():
             stop_word_filtering()
         elif user_input == 3:
             word_length_filtering()
+        elif user_input == 4:
+            infrequent_word_filtering()

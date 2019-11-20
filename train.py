@@ -1,8 +1,10 @@
 import pandas as pd
-from collections import OrderedDict
 import nltk, math
 import experiments
 import time
+from collections import OrderedDict
+
+remove_freq = 1
 
 
 # nltk.download('averaged_perceptron_tagger')
@@ -25,7 +27,7 @@ def read_file(exp=1):
     df_training = df.loc[mask_2018]
     df_testing = df.loc[mask_2019]
 
-    build_vocabulary(df_training, exp)
+    build_vocabulary(pd.read_csv("./sample.csv"), exp)
 
 
 def build_vocabulary(df, exp):
@@ -142,8 +144,6 @@ def tokenize_word(raw, title, df, j, testing=False):
 
 
 def train(freq_dict, exp):
-    dict_keys = freq_dict.keys()
-    freq = list(freq_dict.values())
     word = []
     word_list = []
     post_type = []
@@ -153,12 +153,20 @@ def train(freq_dict, exp):
     p_poll_dict = {}
     class_probability = []
 
+    if exp == 4:
+        new_dict = {k: v for k, v in freq_dict.items() if not (v <= remove_freq)}
+        freq_dict = new_dict
+
+    dict_keys = freq_dict.keys()
+    freq = list(freq_dict.values())
+
     for each in dict_keys:
         word_class = each.split('-')
         word.append(word_class[0])
         post_type.append(word_class[1])
 
     df = pd.DataFrame({'Word': word, 'Class': post_type, 'Frequency': freq})
+    df.to_csv("Vocabulary.csv")
     story_df = df[df.Class.str.match('story', case=False)]
     ask_hn_df = df[df.Class.str.match('ask_hn', case=False)]
     show_hn_df = df[df.Class.str.match('show_hn', case=False)]
@@ -177,6 +185,7 @@ def train(freq_dict, exp):
     total_words = df.Frequency.sum()
     vocabulary = df.Word.unique()
     vocabulary_size = len(vocabulary)
+    experiments.no_of_words = vocabulary_size
 
     # int(15.55555 * 10 ** 3) / 10.0 ** 3
 
@@ -256,8 +265,11 @@ def train(freq_dict, exp):
     class_probability.append(class_probability_poll)
     class_probability.append(class_probability_story)
 
-    experiments.baseline(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_poll_dict,
-                         p_story_dict, exp)
+    accuracy = experiments.baseline(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_poll_dict,
+                                    p_story_dict, exp)
+
+    if exp == 4:
+        experiments.each_accuracy = accuracy
 
 
 def get_wordnet_pos(treebank_tag):
