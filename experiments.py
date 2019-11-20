@@ -24,7 +24,7 @@ def baseline(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_pol
              p_story_dict, exp):
     gc.collect()
     print('IN baseline method')
-    df_testing = pd.read_csv("./sample_testing.csv")
+    # df_testing = pd.read_csv("./sample_testing.csv")
 
     test_labels, predictions, title = classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict,
                                                p_poll_dict,

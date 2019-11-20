@@ -27,7 +27,8 @@ def read_file(exp=1):
     df_training = df.loc[mask_2018]
     df_testing = df.loc[mask_2019]
 
-    build_vocabulary(pd.read_csv("./sample.csv"), exp)
+    # build_vocabulary(pd.read_csv("./sample.csv"), exp)
+    build_vocabulary(df_training, exp)
 
 
 def build_vocabulary(df, exp):
