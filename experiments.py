@@ -57,7 +57,13 @@ def stop_word_filtering():
     train.read_file(2)
 
 
+def word_length_filtering():
+    print("IN WORD LENGTH FILTERING")
+    train.read_file(3)
+
+
 def classify(class_probability, df_testing, model_show_hn, model_ask_hn, model_poll, model_story, exp):
+    title = "NaN"
     title_list = []
     test_labels = []
     predictions = []
@@ -78,12 +84,13 @@ def classify(class_probability, df_testing, model_show_hn, model_ask_hn, model_p
         raw = tokenizer.tokenize(title.lower())
 
         if exp == 2:
-            # print("RAW BEFORE:", raw)
             raw = list(set(raw).difference(stop_words))
             title = ' '.join([str(elem) for elem in raw])
-            # print(raw)
-
-        # print(title)
+        elif exp == 3:
+            new_words = [word for word in list(raw) if not (len(word) >= 9 or len(word) <= 2)]
+            raw = new_words
+            title = ' '.join([str(elem) for elem in new_words])
+        print(title)
 
         j, word_list = train.tokenize_word(raw, title, df_testing, j, True)
         # print(word_list)
@@ -166,6 +173,14 @@ def classify(class_probability, df_testing, model_show_hn, model_ask_hn, model_p
                 hypothesis_poll) + " " + str(
                 post_type) + " " + ("right" if post_type == prediction else "wrong") + '\n')
             file.close()
+        elif exp == 3:
+            file = open("wordlength-result.txt", "a")
+            file.write(str(line_count) + " " + title + " " + prediction + " " + str(
+                hypothesis_story) + " " + str(
+                hypothesis_ask_hn) + " " + str(hypothesis_show_hn) + " " + str(
+                hypothesis_poll) + " " + str(
+                post_type) + " " + ("right" if post_type == prediction else "wrong") + '\n')
+            file.close()
         line_count += 1
 
     return test_labels, predictions, title
@@ -185,3 +200,5 @@ def select_experiment():
 
         if user_input == 2:
             stop_word_filtering()
+        elif user_input == 3:
+            word_length_filtering()

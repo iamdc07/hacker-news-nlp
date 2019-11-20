@@ -82,6 +82,10 @@ def build_vocabulary(df, exp):
             raw = list(set(raw).difference(stop_words))
             title = ' '.join([str(elem) for elem in raw])
             # print(raw)
+        elif exp == 3:
+            for each in raw:
+                if len(each) >= 9 or len(each) <=2:
+                    raw.remove(each)
 
         # raw = nltk.TreebankWordTokenizer().tokenize(title.lower())
         # raw = nltk.WhitespaceTokenizer().tokenize(title.lower())
@@ -399,6 +403,15 @@ def train(freq_dict, exp):
                 p_word_given_show_hn) + " " + str(temp_df_poll[0]) + " " + str(
                 p_word_given_poll) + " " + '\n')
             file.close()
+        elif exp == 3:
+            file = open("wordlength-model.txt", "a")
+            file.write(str(line_count) + " " + str(word) + " " + str(temp_df_story[0]) + " " + str(
+                p_word_given_story) + " " + str(
+                temp_df_ask_hn[0]) + " " + str(p_word_given_ask_hn) + " " + str(
+                temp_df_show_hn[0]) + " " + str(
+                p_word_given_show_hn) + " " + str(temp_df_poll[0]) + " " + str(
+                p_word_given_poll) + " " + '\n')
+            file.close()
         line_count += 1
         # exit(0)
 
@@ -407,7 +420,6 @@ def train(freq_dict, exp):
         p_story_list.append(p_word_given_story)
         p_poll_list.append(p_word_given_poll)
         word_list.append(word)
-
 
     end_time = time.process_time() - start_time
     print("Time to train:", end_time)
@@ -442,7 +454,6 @@ def train(freq_dict, exp):
 
     experiments.baseline(class_probability, df_testing, model_df_show_hn, model_df_ask_hn, model_df_poll,
                          model_df_story, exp)
-
 
     # print(story_df)
     # print(df)
