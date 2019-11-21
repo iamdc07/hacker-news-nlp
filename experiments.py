@@ -5,7 +5,7 @@ import train
 import operator, math
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, average_precision_score
 
 no_of_words = 0
 each_accuracy = 0
@@ -23,22 +23,19 @@ plt.rcdefaults()
 def baseline(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_poll_dict,
              p_story_dict, exp):
     gc.collect()
-    print('IN baseline method')
-    df_testing = pd.read_csv("./sample_testing.csv")
+    # print('IN baseline method')
+    # df_testing = pd.read_csv("./sample_testing.csv")
 
     test_labels, predictions, title = classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict,
                                                p_poll_dict,
                                                p_story_dict, exp)
 
-    # int(hypothesis_poll * 10 ** 10) / 10.0 ** 10)
-    # int(hypothesis_show_hn * 10 ** 10) / 10.0 ** 10)
-    # int(hypothesis_ask_hn * 10 ** 10) / 10.0 ** 10)
-    # int(hypothesis_story * 10 ** 10) / 10.0 ** 10)
-
     # Calculate precision and recall and plot it against the data
 
     accuracy = accuracy_score(test_labels, predictions)
+    # average_precision = average_precision_score(test_labels, predictions)
     print("Accuracy:", accuracy)
+    # print("Precision:", average_precision)
     print("--------------------------------------")
     return accuracy
 
@@ -49,23 +46,21 @@ def stop_word_filtering():
     stop_words_df = pd.read_csv("./Stopwords.txt")
     stop_words = stop_words_df["a"].tolist()
 
-    print("IN STOP WORD FILTERING")
+    # print("IN STOP WORD FILTERING")
     train.read_file(2)
 
 
 def word_length_filtering():
-    print("IN WORD LENGTH FILTERING")
+    # print("IN WORD LENGTH FILTERING")
     train.read_file(3)
 
 
 def infrequent_word_filtering():
-    # global vocab_size
-    # global accuracy_list
     vocab_size = []
     accuracy_list = []
 
     i = 5
-    print("IN INFREQUENT WORD FILTERING")
+    # print("IN INFREQUENT WORD FILTERING")
 
     train.read_file(4)
     vocab_size.append(no_of_words)
@@ -116,7 +111,7 @@ def infrequent_word_filtering():
 
 
 def smoothing():
-    print("IN SMOOTHING")
+    # print("IN SMOOTHING")
     accuracy_list = []
     smoothing_list = []
 
@@ -160,15 +155,12 @@ def classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_pol
 
         raw = tokenizer.tokenize(title.lower())
 
-        # if exp == 2:
-        #     raw = list(set(raw).difference(stop_words))
-        #     title = ' '.join([str(elem) for elem in raw])
         if exp == 3:
             new_words = [word for word in list(raw) if not (len(word) >= 9 or len(word) <= 2)]
             raw = new_words
             title = ' '.join([str(elem) for elem in new_words])
 
-        j, word_list = train.tokenize_word(raw, title, df_testing, j, True)
+        j, word_list = train.tokenize_word(raw, title, df_testing, j, set(), True)
 
         # 0: show_hn
         # 1: ask_hn
@@ -178,8 +170,6 @@ def classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_pol
         hypothesis_story = math.log10(class_probability[3])
         hypothesis_ask_hn = math.log10(class_probability[1])
         hypothesis_show_hn = math.log10(class_probability[0])
-        # print(class_probability[0])
-        # print(class_probability[2])
         hypothesis_poll = math.log10(class_probability[2])
 
         for each_word in word_list:
@@ -216,8 +206,6 @@ def classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_pol
         }
 
         prediction = max(answer.items(), key=operator.itemgetter(1))[0]
-        # print("predicted: ['", prediction, "'] actual:", post_type, ' title:',
-        #       title)
         title_list.append(title)
         test_labels.append(labels.get(post_type))
         predictions.append(labels.get(max(answer.items(), key=operator.itemgetter(1))[0]))

@@ -1,5 +1,5 @@
 import pandas as pd
-import nltk, math
+import nltk
 import experiments
 import time
 import operator
@@ -27,9 +27,9 @@ def read_file(exp=1):
     start_date = '2019-01-01 00:00:00'
     end_date = '2019-12-31 00:00:00'
     mask_2019 = (df['date'] > start_date) & (df['date'] <= end_date)
-    # df_training = df.loc[mask_2018]
+    df_training = df.loc[mask_2018]
     df_testing = df.loc[mask_2019]
-    df_training = pd.read_csv("./sample.csv")
+    # df_training = pd.read_csv("./sample.csv")
 
     build_vocabulary(df_training, exp)
 
@@ -37,7 +37,9 @@ def read_file(exp=1):
 def build_vocabulary(df, exp):
     global word_freq_dict
     global start_time
+    global words_removed
     word_freq_dict = {}
+    words_removed = set()
 
     j = 0
 
@@ -60,13 +62,17 @@ def build_vocabulary(df, exp):
                 if len(each) >= 9 or len(each) <= 2:
                     raw.remove(each)
 
-        j = tokenize_word(raw, title, df, j)
+        j = tokenize_word(raw, title, df, j, words_removed)
 
     od = OrderedDict(sorted(word_freq_dict.items()))
 
     with open('frequency_dict.txt', 'w') as file:
         for key, val in od.items():
             file.write(str(key) + " " + str(val) + "\n")
+
+    with open("./vocabulary.txt", "w") as file:
+        for element in words_removed:
+            file.write(element + "\n")
 
     train(od, exp)
 
@@ -75,8 +81,7 @@ def build_vocabulary(df, exp):
     print('TOTAL TIME TAKEN IN (MINUTES):', total_time / 60)
 
 
-def tokenize_word(raw, title, df, j, testing=False):
-    words_removed = []
+def tokenize_word(raw, title, df, j, w_removed, testing=False):
     bigrams = []
     word_list = []
 
@@ -121,10 +126,10 @@ def tokenize_word(raw, title, df, j, testing=False):
         wordnet_tag = get_wordnet_pos(each_word[1])
 
         if each_word[1] == "FW" or each_word[1] == "CD":
-            words_removed.append(each_word[0])
+            w_removed.add(each_word[0].strip())
             continue
         if len(each_word[0]) == 1 and not (each_word[0] == "a" or each_word[0] == "i"):
-            words_removed.append(each_word[0])
+            w_removed.add(each_word[0].strip())
             continue
 
         word_lemm = lemmatizer.lemmatize(each_word[0], wordnet_tag)
@@ -143,10 +148,6 @@ def tokenize_word(raw, title, df, j, testing=False):
 
     j += 1
     pos.clear()
-
-    with open("./vocabulary.txt", "w") as file:
-        for element in words_removed:
-            file.write(element)
 
     if testing:
         return j, word_list
@@ -172,11 +173,7 @@ def train(freq_dict, exp):
         sorted_dict_list = sorted(freq_dict.items(), key=operator.itemgetter(1))
         remove_elements = int(len(sorted_dict_list) * remove_percent)
         new_dict_list = sorted_dict_list[remove_elements:]
-        # print("OLD LIST SIZE:", len(sorted_dict_list), " NEW LIST SIZE:", len(new_dict_list), " REMOVE:",
-        #       remove_elements)
         freq_dict = dict(new_dict_list)
-        # print(freq_dict)
-        # exit(0)
     elif exp == 5:
         smoothing = smoothing_value
 
@@ -210,14 +207,11 @@ def train(freq_dict, exp):
     poll_count = sum(poll_words.values())
     story_count = sum(story_words.values())
 
-    total_words = df.Frequency.sum()
     vocabulary = df.Word.unique()
     vocabulary_size = len(vocabulary)
     experiments.no_of_words = vocabulary_size
 
     # int(15.55555 * 10 ** 3) / 10.0 ** 3
-
-    print("Size:", vocabulary_size)
 
     story_dft.to_csv("./story_dft.csv")
     ask_hn_dft.to_csv("./ask_hn_dft.csv")
@@ -229,25 +223,8 @@ def train(freq_dict, exp):
     class_probability_poll = (len(poll_dft.index) / len(df_training.index))
     class_probability_story = (len(story_dft.index) / len(df_training.index))
 
-    # print("class_probability_show_hn: ", class_probability_show_hn)
-    # print("class_probability_ask_hn: ", class_probability_ask_hn)
-    # print("class_probability_poll: ", class_probability_poll)
-    # print("class_probability_story: ", class_probability_story)
-
-    # class_probability_show_hn = class_probability_show_hn
-    # class_probability_ask_hn = class_probability_ask_hn
-    # class_probability_poll = class_probability_poll
-    # class_probability_story = class_probability_story
-
-    # class_probability_show_hn = int(class_probability_show_hn * 10 ** 10) / 10.0 ** 10
-    # class_probability_ask_hn = int(class_probability_ask_hn * 10 ** 10) / 10.0 ** 10
-    # class_probability_poll = int(class_probability_poll * 10 ** 10) / 10.0 ** 10
-    # class_probability_story = int(class_probability_story * 10 ** 10) / 10.0 ** 10
-
     if smoothing == 0:
         vocabulary_size = 0
-
-    print("Vocabulary:", vocabulary_size)
 
     line_count = 1
 
@@ -272,14 +249,6 @@ def train(freq_dict, exp):
         p_word_given_ask_hn = p_word_given_ask_hn
         p_word_given_poll = p_word_given_poll
         p_word_given_story = p_word_given_story
-
-        # p_word_given_show_hn = int(p_word_given_show_hn * 10 ** 10) / 10.0 ** 10
-        #
-        # p_word_given_ask_hn = int(p_word_given_ask_hn * 10 ** 10) / 10.0 ** 10
-        #
-        # p_word_given_poll = int(p_word_given_poll * 10 ** 10) / 10.0 ** 10
-        #
-        # p_word_given_story = int(p_word_given_story * 10 ** 10) / 10.0 ** 10
 
         if exp == 1:
             file = open("model-2018.txt", "a")
