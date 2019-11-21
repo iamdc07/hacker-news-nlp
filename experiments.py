@@ -23,7 +23,6 @@ plt.rcdefaults()
 def baseline(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_poll_dict,
              p_story_dict, exp):
     gc.collect()
-    # print('IN baseline method')
     # df_testing = pd.read_csv("./sample_testing.csv")
 
     test_labels, predictions, title = classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict,
@@ -46,12 +45,10 @@ def stop_word_filtering():
     stop_words_df = pd.read_csv("./Stopwords.txt")
     stop_words = stop_words_df["a"].tolist()
 
-    # print("IN STOP WORD FILTERING")
     train.read_file(2)
 
 
 def word_length_filtering():
-    # print("IN WORD LENGTH FILTERING")
     train.read_file(3)
 
 
@@ -60,7 +57,6 @@ def infrequent_word_filtering():
     accuracy_list = []
 
     i = 5
-    # print("IN INFREQUENT WORD FILTERING")
 
     train.read_file(4)
     vocab_size.append(no_of_words)
@@ -72,9 +68,6 @@ def infrequent_word_filtering():
         vocab_size.append(no_of_words)
         accuracy_list.append(each_accuracy)
         i += 5
-
-    # print("Vocab:", vocab_size)
-    # print("Accuracy:", accuracy_list)
 
     objects = ('=1', '<=5', '<=10', '<=15', '<=20')
     y_pos = np.arange(len(objects))
@@ -111,7 +104,6 @@ def infrequent_word_filtering():
 
 
 def smoothing():
-    # print("IN SMOOTHING")
     accuracy_list = []
     smoothing_list = []
 
@@ -149,7 +141,6 @@ def classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_pol
     for index, row in df_testing.iterrows():
         title = row["Title"]
         post_type = row["Post Type"]
-        # print(line_count, " ", title)
 
         tokenizer = nltk.RegexpTokenizer(r"\w+", False, True)
 

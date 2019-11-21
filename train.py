@@ -211,8 +211,6 @@ def train(freq_dict, exp):
     vocabulary_size = len(vocabulary)
     experiments.no_of_words = vocabulary_size
 
-    # int(15.55555 * 10 ** 3) / 10.0 ** 3
-
     story_dft.to_csv("./story_dft.csv")
     ask_hn_dft.to_csv("./ask_hn_dft.csv")
     show_hn_dft.to_csv("./show_hn_dft.csv")
@@ -230,25 +228,14 @@ def train(freq_dict, exp):
 
     for word in vocabulary:
         temp_show_hn_freq = show_hn_words[word] if word in show_hn_words else 0
-
         temp_ask_hn_freq = ask_hn_words[word] if word in ask_hn_words else 0
-
         temp_story_freq = story_words[word] if word in story_words else 0
-
         temp_poll_freq = poll_words[word] if word in poll_words else 0
 
         p_word_given_show_hn = ((temp_show_hn_freq + smoothing) / (show_hn_count + vocabulary_size))
-
         p_word_given_ask_hn = ((temp_ask_hn_freq + smoothing) / (ask_hn_count + vocabulary_size))
-
         p_word_given_poll = ((temp_poll_freq + smoothing) / (poll_count + vocabulary_size))
-
         p_word_given_story = ((temp_story_freq + smoothing) / (story_count + vocabulary_size))
-
-        p_word_given_show_hn = p_word_given_show_hn
-        p_word_given_ask_hn = p_word_given_ask_hn
-        p_word_given_poll = p_word_given_poll
-        p_word_given_story = p_word_given_story
 
         if exp == 1:
             file = open("model-2018.txt", "a")
