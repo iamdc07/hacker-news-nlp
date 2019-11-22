@@ -2,7 +2,6 @@
 __pycache__/
 hn2018_2019.csv
 poll.csv
-sample.csv
 probability.csv
 show_hn.csv
 story.csv
@@ -17,3 +16,10 @@ ask_hn_dft.csv
 show_hn_dft.csv
 poll_dft.csv
 story_dft.csv
+baseline-result.txt
+stopword-model.txt
+stopword-result.txt
+wordlength-model.txt
+wordlength-result.txt
+model-2018.txt
+df_training.csv

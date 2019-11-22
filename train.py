@@ -18,8 +18,10 @@ def read_file(exp=1):
     global df_testing
     global df_training
 
-    df = pd.read_csv("./hn2018_2019.csv")
-
+    # df = pd.read_csv("./hn2018_2019.csv")
+    df = pd.read_csv("./sample.csv")
+    df = df.drop(columns=df.columns[0])
+    # print(df)
     df['date'] = pd.to_datetime(df['Created At'])
     start_date = '2018-01-01 00:00:00'
     end_date = '2018-12-31 00:00:00'
@@ -29,7 +31,11 @@ def read_file(exp=1):
     mask_2019 = (df['date'] > start_date) & (df['date'] <= end_date)
     df_training = df.loc[mask_2018]
     df_testing = df.loc[mask_2019]
+    df_training.to_csv("./df_training.csv")
+    df_testing.to_csv("./df_testing.csv")
     # df_training = pd.read_csv("./sample.csv")
+    # print(df_training.at[45, 'Title'])
+    # exit(0)
 
     build_vocabulary(df_training, exp)
 
@@ -41,28 +47,26 @@ def build_vocabulary(df, exp):
     word_freq_dict = {}
     words_removed = set()
 
-    j = 0
-
     start_time = time.process_time()
 
     if exp == 2:
         stop_words_df = pd.read_csv("./Stopwords.txt")
         stop_words = stop_words_df["a"].tolist()
 
-    for title in df['Title']:
+    for index, row in df.iterrows():
         tokenizer = nltk.RegexpTokenizer(r"\w+", False, True)
 
-        raw = tokenizer.tokenize(title.lower())
+        raw = tokenizer.tokenize(row["Title"].lower())
 
         if exp == 2:
             raw = list(set(raw).difference(stop_words))
-            title = ' '.join([str(elem) for elem in raw])
+            row["Title"] = ' '.join([str(elem) for elem in raw])
         elif exp == 3:
             for each in raw:
                 if len(each) >= 9 or len(each) <= 2:
                     raw.remove(each)
 
-        j = tokenize_word(raw, title, df, j, words_removed)
+        tokenize_word(raw, row["Title"], df, index, words_removed)
 
     od = OrderedDict(sorted(word_freq_dict.items()))
 
@@ -81,7 +85,7 @@ def build_vocabulary(df, exp):
     print('TOTAL TIME TAKEN IN (MINUTES):', total_time / 60)
 
 
-def tokenize_word(raw, title, df, j, w_removed, testing=False):
+def tokenize_word(raw, title, df, index, w_removed, testing=False):
     bigrams = []
     word_list = []
 
@@ -110,7 +114,7 @@ def tokenize_word(raw, title, df, j, w_removed, testing=False):
                     raw.remove(word[1].lower())
 
                     if testing is False:
-                        temp = each_element.lower() + "-" + df.at[j, 'Post Type']
+                        temp = each_element.lower() + "-" + df.at[index, 'Post Type']
                         freq = word_freq_dict.get(temp)
                         if freq is None:
                             word_freq_dict[temp] = 1
@@ -135,7 +139,7 @@ def tokenize_word(raw, title, df, j, w_removed, testing=False):
         word_lemm = lemmatizer.lemmatize(each_word[0], wordnet_tag)
 
         if testing is False:
-            temp = word_lemm + "-" + df.at[j, 'Post Type']
+            temp = word_lemm + "-" + df.at[index, 'Post Type']
             value = word_freq_dict.get(temp)
             if value is None:
                 word_freq_dict[temp] = 1
@@ -146,13 +150,9 @@ def tokenize_word(raw, title, df, j, w_removed, testing=False):
             if testing:
                 word_list.append(word_lemm)
 
-    j += 1
     pos.clear()
 
-    if testing:
-        return j, word_list
-    else:
-        return j
+    return word_list
 
 
 def train(freq_dict, exp):
@@ -186,7 +186,8 @@ def train(freq_dict, exp):
         post_type.append(word_class[1])
 
     df = pd.DataFrame({'Word': word, 'Class': post_type, 'Frequency': freq})
-    # df.to_csv("vocabulary.csv")
+    print(df)
+    df.to_csv("vocabulary.csv")
     story_df = df[df.Class.str.match('story', case=False)]
     ask_hn_df = df[df.Class.str.match('ask_hn', case=False)]
     show_hn_df = df[df.Class.str.match('show_hn', case=False)]
@@ -216,10 +217,10 @@ def train(freq_dict, exp):
     show_hn_dft.to_csv("./show_hn_dft.csv")
     poll_dft.to_csv("./poll_dft.csv")
 
-    class_probability_show_hn = (len(show_hn_dft.index) / len(df_training.index))
-    class_probability_ask_hn = (len(ask_hn_dft.index) / len(df_training.index))
-    class_probability_poll = (len(poll_dft.index) / len(df_training.index))
-    class_probability_story = (len(story_dft.index) / len(df_training.index))
+    class_probability_show_hn = len(show_hn_dft.index) / len(df_training.index)
+    class_probability_ask_hn = len(ask_hn_dft.index) / len(df_training.index)
+    class_probability_poll = len(poll_dft.index) / len(df_training.index)
+    class_probability_story = len(story_dft.index) / len(df_training.index)
 
     if smoothing == 0:
         vocabulary_size = 0

@@ -135,12 +135,16 @@ def classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_pol
     test_labels = []
     predictions = []
 
-    j = df_testing.first_valid_index()
+    # j = df_testing.first_valid_index()
+    # print(j)
     line_count = 1
 
     for index, row in df_testing.iterrows():
         title = row["Title"]
         post_type = row["Post Type"]
+        # print("index:", index)
+
+        # print("Post type:", post_type)
 
         tokenizer = nltk.RegexpTokenizer(r"\w+", False, True)
 
@@ -151,17 +155,37 @@ def classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_pol
             raw = new_words
             title = ' '.join([str(elem) for elem in new_words])
 
-        j, word_list = train.tokenize_word(raw, title, df_testing, j, set(), True)
+        word_list = train.tokenize_word(raw, title, df_testing, index, set(), True)
 
         # 0: show_hn
         # 1: ask_hn
         # 2: poll
         # 3: story
 
-        hypothesis_story = math.log10(class_probability[3])
-        hypothesis_ask_hn = math.log10(class_probability[1])
-        hypothesis_show_hn = math.log10(class_probability[0])
-        hypothesis_poll = math.log10(class_probability[2])
+        # print("[0]", class_probability[0])
+        # print("[1]", class_probability[1])
+        # print("[2]", class_probability[2])
+        # print("[3]", class_probability[3])
+
+        if class_probability[3] == 0:
+            hypothesis_story = 0
+        else:
+            hypothesis_story = math.log10(class_probability[3])
+
+        if class_probability[1] == 0:
+            hypothesis_ask_hn = 0
+        else:
+            hypothesis_ask_hn = math.log10(class_probability[1])
+
+        if class_probability[0] == 0:
+            hypothesis_show_hn = 0
+        else:
+            hypothesis_show_hn = math.log10(class_probability[0])
+
+        if class_probability[2] == 0:
+            hypothesis_poll = 0
+        else:
+            hypothesis_poll = math.log10(class_probability[2])
 
         for each_word in word_list:
 
@@ -226,6 +250,8 @@ def classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_pol
                 post_type) + " " + ("right" if post_type == prediction else "wrong") + '\n')
             file.close()
         line_count += 1
+
+    # print("Test Labels:", test_labels, " Pred:", predictions)
 
     return test_labels, predictions, title
 
