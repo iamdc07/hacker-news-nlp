@@ -113,12 +113,12 @@ def smoothing():
     i = 0
 
     while i <= 1:
-        print("Smoothing: ", i)
+        print("Smoothing: ", format(i, '.1g'))
         train.smoothing_value = i
         train.read_file(5)
         accuracy_list.append(each_accuracy)
         smoothing_list.append(i)
-        i += 0.1
+        i = i + 0.1
 
     objects = ('0', '0.1', '0.2', '0.3', '0.4', '0.5', '0.6', '0.7', '0.8', '0.9', '1')
     y_pos = np.arange(len(objects))
