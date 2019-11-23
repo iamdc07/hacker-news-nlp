@@ -18,10 +18,9 @@ def read_file(exp=1):
     global df_testing
     global df_training
 
-    # df = pd.read_csv("./hn2018_2019.csv")
-    df = pd.read_csv("./sample.csv")
+    df = pd.read_csv("./hn2018_2019.csv")
+    # df = pd.read_csv("./sample.csv")
     df = df.drop(columns=df.columns[0])
-    # print(df)
     df['date'] = pd.to_datetime(df['Created At'])
     start_date = '2018-01-01 00:00:00'
     end_date = '2018-12-31 00:00:00'
@@ -34,8 +33,6 @@ def read_file(exp=1):
     df_training.to_csv("./df_training.csv")
     df_testing.to_csv("./df_testing.csv")
     # df_training = pd.read_csv("./sample.csv")
-    # print(df_training.at[45, 'Title'])
-    # exit(0)
 
     build_vocabulary(df_training, exp)
 
@@ -83,6 +80,7 @@ def build_vocabulary(df, exp):
     total_time = time.process_time() - start_time
     print('TOTAL TIME TAKEN IN (S):', total_time)
     print('TOTAL TIME TAKEN IN (MINUTES):', total_time / 60)
+    print("-------------------------------------------------")
 
 
 def tokenize_word(raw, title, df, index, w_removed, testing=False):
@@ -186,8 +184,12 @@ def train(freq_dict, exp):
         post_type.append(word_class[1])
 
     df = pd.DataFrame({'Word': word, 'Class': post_type, 'Frequency': freq})
-    print(df)
     df.to_csv("vocabulary.csv")
+
+    if df.empty:
+        experiments.each_accuracy = -1
+        return
+
     story_df = df[df.Class.str.match('story', case=False)]
     ask_hn_df = df[df.Class.str.match('ask_hn', case=False)]
     show_hn_df = df[df.Class.str.match('show_hn', case=False)]
@@ -233,10 +235,26 @@ def train(freq_dict, exp):
         temp_story_freq = story_words[word] if word in story_words else 0
         temp_poll_freq = poll_words[word] if word in poll_words else 0
 
-        p_word_given_show_hn = ((temp_show_hn_freq + smoothing) / (show_hn_count + vocabulary_size))
-        p_word_given_ask_hn = ((temp_ask_hn_freq + smoothing) / (ask_hn_count + vocabulary_size))
-        p_word_given_poll = ((temp_poll_freq + smoothing) / (poll_count + vocabulary_size))
-        p_word_given_story = ((temp_story_freq + smoothing) / (story_count + vocabulary_size))
+        if show_hn_count == 0:
+            print(show_hn_count)
+            p_word_given_show_hn = 0
+        else:
+            p_word_given_show_hn = ((temp_show_hn_freq + smoothing) / (show_hn_count + vocabulary_size))
+
+        if ask_hn_count == 0:
+            p_word_given_ask_hn = 0
+        else:
+            p_word_given_ask_hn = ((temp_ask_hn_freq + smoothing) / (ask_hn_count + vocabulary_size))
+
+        if poll_count == 0:
+            p_word_given_poll = 0
+        else:
+            p_word_given_poll = ((temp_poll_freq + smoothing) / (poll_count + vocabulary_size))
+
+        if story_count == 0:
+            p_word_given_story = 0
+        else:
+            p_word_given_story = ((temp_story_freq + smoothing) / (story_count + vocabulary_size))
 
         if exp == 1:
             file = open("model-2018.txt", "a")
@@ -274,7 +292,7 @@ def train(freq_dict, exp):
         word_list.append(word)
 
     end_time = time.process_time() - start_time
-    print("Time to train:", end_time)
+    print("\nTime to train:", end_time)
 
     # 0: show_hn
     # 1: ask_hn

@@ -5,7 +5,7 @@ import train
 import operator, math
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.metrics import accuracy_score, average_precision_score
+from sklearn.metrics import accuracy_score
 
 no_of_words = 0
 each_accuracy = 0
@@ -29,13 +29,8 @@ def baseline(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_pol
                                                p_poll_dict,
                                                p_story_dict, exp)
 
-    # Calculate precision and recall and plot it against the data
-
     accuracy = accuracy_score(test_labels, predictions)
-    # average_precision = average_precision_score(test_labels, predictions)
     print("Accuracy:", accuracy)
-    # print("Precision:", average_precision)
-    print("--------------------------------------")
     return accuracy
 
 
@@ -58,14 +53,21 @@ def infrequent_word_filtering():
 
     i = 5
 
+    print("Remove words which have:")
+    print("Frequency = ", 1)
     train.read_file(4)
     vocab_size.append(no_of_words)
     accuracy_list.append(each_accuracy)
 
     while i <= 20:
+        print("Frequency <= ", i)
         train.remove_freq = i
         train.read_file(4)
         vocab_size.append(no_of_words)
+        if each_accuracy == -1:
+            print("There is no data in dataset to perform this experiment!\n")
+            return
+
         accuracy_list.append(each_accuracy)
         i += 5
 
@@ -85,6 +87,7 @@ def infrequent_word_filtering():
     accuracy_list.clear()
 
     while i <= 25:
+        print(i, "% Frequent words")
         train.remove_percent = i / 100
         train.read_file(4.5)
         vocab_size.append(no_of_words)
@@ -110,6 +113,7 @@ def smoothing():
     i = 0
 
     while i <= 1:
+        print("Smoothing: ", i)
         train.smoothing_value = i
         train.read_file(5)
         accuracy_list.append(each_accuracy)
@@ -135,16 +139,11 @@ def classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_pol
     test_labels = []
     predictions = []
 
-    # j = df_testing.first_valid_index()
-    # print(j)
     line_count = 1
 
     for index, row in df_testing.iterrows():
         title = row["Title"]
         post_type = row["Post Type"]
-        # print("index:", index)
-
-        # print("Post type:", post_type)
 
         tokenizer = nltk.RegexpTokenizer(r"\w+", False, True)
 
@@ -161,11 +160,6 @@ def classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_pol
         # 1: ask_hn
         # 2: poll
         # 3: story
-
-        # print("[0]", class_probability[0])
-        # print("[1]", class_probability[1])
-        # print("[2]", class_probability[2])
-        # print("[3]", class_probability[3])
 
         if class_probability[3] == 0:
             hypothesis_story = 0
@@ -213,12 +207,14 @@ def classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_pol
                     hypothesis_poll += math.log10(p_conditional_poll)
                     hypothesis_poll = int(hypothesis_poll * 10 ** 10) / 10.0 ** 10
 
-        answer = {
+        temp_dict = {
             "poll": hypothesis_poll,
             "show_hn": hypothesis_show_hn,
             "ask_hn": hypothesis_ask_hn,
             "story": hypothesis_story
         }
+
+        answer = {x: y for x, y in temp_dict.items() if y != 0}
 
         prediction = max(answer.items(), key=operator.itemgetter(1))[0]
         title_list.append(title)
@@ -250,8 +246,6 @@ def classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_pol
                 post_type) + " " + ("right" if post_type == prediction else "wrong") + '\n')
             file.close()
         line_count += 1
-
-    # print("Test Labels:", test_labels, " Pred:", predictions)
 
     return test_labels, predictions, title
 
