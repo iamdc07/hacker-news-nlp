@@ -30,9 +30,6 @@ def read_file(exp=1):
     mask_2019 = (df['date'] > start_date) & (df['date'] <= end_date)
     df_training = df.loc[mask_2018]
     df_testing = df.loc[mask_2019]
-    df_training.to_csv("./df_training.csv")
-    df_testing.to_csv("./df_testing.csv")
-    # df_training = pd.read_csv("./sample.csv")
 
     build_vocabulary(df_training, exp)
 
@@ -55,6 +52,10 @@ def build_vocabulary(df, exp):
 
         raw = tokenizer.tokenize(row["Title"].lower())
 
+        temp1 = tokenizer.tokenize(row["Title"])
+
+        title = ' '.join(temp1)
+
         if exp == 2:
             raw = list(set(raw).difference(stop_words))
             row["Title"] = ' '.join([str(elem) for elem in raw])
@@ -63,7 +64,7 @@ def build_vocabulary(df, exp):
                 if len(each) >= 9 or len(each) <= 2:
                     raw.remove(each)
 
-        tokenize_word(raw, row["Title"], df, index, words_removed)
+        tokenize_word(raw, title, df, index, words_removed)
 
     od = OrderedDict(sorted(word_freq_dict.items()))
 
@@ -99,21 +100,29 @@ def tokenize_word(raw, title, df, index, w_removed, testing=False):
     for each_element in bigrams:
         word = each_element.split(' ')
 
-        indices_0 = [i for i, x in enumerate(raw) if x == word[0]]
-        indices_1 = [i for i, x in enumerate(raw) if x == word[1]]
+        indices_0 = [i for i, e in enumerate(raw) if e == word[0].lower()]
+        if len(indices_0) != 0:
+            indices_1 = [i for i, e in enumerate(raw[indices_0[0] + 1:]) if e == word[1].lower()]
+        else:
+            indices_1 = [i for i, e in enumerate(raw) if e == word[1].lower()]
+
+        # print("RAW:", raw)
+        # print(word[0], " ", word[1])
 
         if word[0].istitle() and word[1].istitle():
+            # print("INDICES:", indices_0, " ", indices_1)
             if len(indices_0) > 0 and (
                     pos_dict.get(word[0].lower()) == 'NN' or pos_dict.get(word[0].lower()) == 'NNS'):
                 if len(indices_1) > 0 and (
                         pos_dict.get(word[1].lower()) == 'NN' or pos_dict.get(word[1].lower()) == 'NNS'):
                     raw.remove(word[0].lower())
-                    raw.index(word[1].lower())
+                    # raw.index(word[1].lower())
                     raw.remove(word[1].lower())
 
                     if testing is False:
                         temp = each_element.lower() + "-" + df.at[index, 'Post Type']
                         freq = word_freq_dict.get(temp)
+                        raw.append(each_element.lower())
                         if freq is None:
                             word_freq_dict[temp] = 1
                         else:
@@ -122,6 +131,7 @@ def tokenize_word(raw, title, df, index, w_removed, testing=False):
                     else:
                         word_list.append(each_element.lower())
 
+    # print("AFTER:", raw)
     pos = nltk.pos_tag(raw)
 
     for each_word in pos:
@@ -214,11 +224,6 @@ def train(freq_dict, exp):
     vocabulary_size = len(vocabulary)
     experiments.no_of_words = vocabulary_size
 
-    story_dft.to_csv("./story_dft.csv")
-    ask_hn_dft.to_csv("./ask_hn_dft.csv")
-    show_hn_dft.to_csv("./show_hn_dft.csv")
-    poll_dft.to_csv("./poll_dft.csv")
-
     class_probability_show_hn = len(show_hn_dft.index) / len(df_training.index)
     class_probability_ask_hn = len(ask_hn_dft.index) / len(df_training.index)
     class_probability_poll = len(poll_dft.index) / len(df_training.index)
@@ -236,7 +241,6 @@ def train(freq_dict, exp):
         temp_poll_freq = poll_words[word] if word in poll_words else 0
 
         if show_hn_count == 0:
-            print(show_hn_count)
             p_word_given_show_hn = 0
         else:
             p_word_given_show_hn = ((temp_show_hn_freq + smoothing) / (show_hn_count + vocabulary_size))

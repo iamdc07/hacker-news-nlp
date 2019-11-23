@@ -23,12 +23,12 @@ plt.rcdefaults()
 def baseline(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_poll_dict,
              p_story_dict, exp):
     gc.collect()
-    # df_testing = pd.read_csv("./sample_testing.csv")
 
     test_labels, predictions, title = classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict,
                                                p_poll_dict,
                                                p_story_dict, exp)
 
+    # print(test_labels, " ", predictions)
     accuracy = accuracy_score(test_labels, predictions)
     print("Accuracy:", accuracy)
     return accuracy
@@ -140,10 +140,12 @@ def classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_pol
     predictions = []
 
     line_count = 1
+    # print("TEST")
 
     for index, row in df_testing.iterrows():
         title = row["Title"]
         post_type = row["Post Type"]
+        # print("Test1:", title)
 
         tokenizer = nltk.RegexpTokenizer(r"\w+", False, True)
 
