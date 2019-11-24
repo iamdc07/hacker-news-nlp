@@ -153,7 +153,7 @@ def smoothing():
     plt.ylabel("Accuracy")
     plt.title('Performance of the classifiers against the variation in smoothing ')
 
-    plt.draw()
+    plt.show()
 
 
 def classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_poll_dict,

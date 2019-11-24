@@ -212,7 +212,6 @@ def train(freq_dict, exp):
     ask_hn_dft = df_training[df_training["Post Type"].str.match('ask_hn', case=False)]
     show_hn_dft = df_training[df_training["Post Type"].str.match('show_hn', case=False)]
     poll_dft = df_training[df_training["Post Type"].str.match('poll', case=False)]
-    poll_df.to_csv("poll.csv")
 
     show_hn_words = dict(zip(show_hn_df.Word, show_hn_df.Frequency))
     ask_hn_words = dict(zip(ask_hn_df.Word, ask_hn_df.Frequency))
