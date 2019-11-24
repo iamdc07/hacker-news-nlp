@@ -21,8 +21,8 @@ def read_file(exp=1):
     global df_testing
     global df_training
 
-    df = pd.read_csv("./hn2018_2019.csv")
-    # df = pd.read_csv("./sample.csv")
+    # df = pd.read_csv("./hn2018_2019.csv")
+    df = pd.read_csv("./sample.csv")
     df = df.drop(columns=df.columns[0])
     df['date'] = pd.to_datetime(df['Created At'])
     start_date = '2018-01-01 00:00:00'
@@ -212,6 +212,7 @@ def train(freq_dict, exp):
     ask_hn_dft = df_training[df_training["Post Type"].str.match('ask_hn', case=False)]
     show_hn_dft = df_training[df_training["Post Type"].str.match('show_hn', case=False)]
     poll_dft = df_training[df_training["Post Type"].str.match('poll', case=False)]
+    poll_df.to_csv("poll.csv")
 
     show_hn_words = dict(zip(show_hn_df.Word, show_hn_df.Frequency))
     ask_hn_words = dict(zip(ask_hn_df.Word, ask_hn_df.Frequency))

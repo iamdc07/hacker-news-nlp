@@ -67,21 +67,28 @@ def infrequent_word_filtering():
 
     print("Remove words which have:")
     print("Frequency = ", 1)
+    train.remove_freq = i
     train.read_file(4)
     vocab_size.append(no_of_words)
-    accuracy_list.append(each_accuracy)
+    if each_accuracy <= 0:
+        accuracy_list.append(0)
+    else:
+        accuracy_list.append(each_accuracy)
 
     while i <= 20:
         print("Frequency <= ", i)
         train.remove_freq = i
         train.read_file(4)
         vocab_size.append(no_of_words)
-        if each_accuracy == -1:
-            print("There is no data in dataset to perform this experiment!\n")
-            return
+        if each_accuracy <= 0:
+            accuracy_list.append(0)
+            print("There is insufficient data in dataset to perform this experiment!\n")
+        else:
+            accuracy_list.append(each_accuracy)
 
-        accuracy_list.append(each_accuracy)
         i += 5
+
+    print("Accuracy list:", accuracy_list)
 
     objects = ('=1', '<=5', '<=10', '<=15', '<=20')
     y_pos = np.arange(len(objects))
@@ -103,7 +110,12 @@ def infrequent_word_filtering():
         train.remove_percent = i / 100
         train.read_file(4.5)
         vocab_size.append(no_of_words)
-        accuracy_list.append(each_accuracy)
+        if each_accuracy <= 0:
+            accuracy_list.append(0)
+            print("There is insufficient data in dataset to perform this experiment!\n")
+        else:
+            accuracy_list.append(each_accuracy)
+
         i += 5
 
     objects = ('5%', '10%', '15%', '20%', '25%')
@@ -141,7 +153,7 @@ def smoothing():
     plt.ylabel("Accuracy")
     plt.title('Performance of the classifiers against the variation in smoothing ')
 
-    plt.show()
+    plt.draw()
 
 
 def classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_poll_dict,
