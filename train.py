@@ -75,7 +75,7 @@ def build_vocabulary(df, exp):
         for key, val in od.items():
             file.write(str(key) + " " + str(val) + "\n")
 
-    with open("./vocabulary.txt", "w") as file:
+    with open("./remove_word.txt", "w") as file:
         for element in words_removed:
             file.write(element + "\n")
 

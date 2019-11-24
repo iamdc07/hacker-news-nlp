@@ -5,7 +5,7 @@ import train
 import operator, math
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, precision_recall_fscore_support
 
 no_of_words = 0
 each_accuracy = 0
@@ -28,11 +28,17 @@ def baseline(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_pol
                                                p_poll_dict,
                                                p_story_dict, exp)
 
-    # print(test_labels, " ", predictions)
     accuracy = accuracy_score(test_labels, predictions)
+    all_score = precision_recall_fscore_support(test_labels, predictions, labels=[0, 1, 2, 3])
     precision = precision_score(test_labels, predictions, average="weighted")
     recall = recall_score(test_labels, predictions, average="weighted")
     f1 = f1_score(test_labels, predictions, average="weighted")
+    print("\nprecision: story - ", all_score[0][3], " | ask_hn - ", all_score[0][2], " | show_hn - ", all_score[0][1],
+          " | poll - ", all_score[0][0])
+    print("recall: story - ", all_score[1][3], " | ask_hn - ", all_score[1][2], " | show_hn - ", all_score[1][1],
+          " | poll - ", all_score[1][0])
+    print("F1 Measure: story - ", all_score[2][3], " | ask_hn - ", all_score[2][2], " | show_hn - ", all_score[2][1],
+          " | poll - ", all_score[2][0])
     print("\nAccuracy:", accuracy)
     print("Precision:", precision)
     print("Recall:", recall)
