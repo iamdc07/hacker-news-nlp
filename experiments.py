@@ -5,7 +5,7 @@ import train
 import operator, math
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 no_of_words = 0
 each_accuracy = 0
@@ -30,7 +30,13 @@ def baseline(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_pol
 
     # print(test_labels, " ", predictions)
     accuracy = accuracy_score(test_labels, predictions)
-    print("Accuracy:", accuracy)
+    precision = precision_score(test_labels, predictions, average="weighted")
+    recall = recall_score(test_labels, predictions, average="weighted")
+    f1 = f1_score(test_labels, predictions, average="weighted")
+    print("\nAccuracy:", accuracy)
+    print("Precision:", precision)
+    print("Recall:", recall)
+    print("F1 Measure:", f1)
     return accuracy
 
 

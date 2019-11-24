@@ -4,7 +4,10 @@ import experiments
 import time
 import operator
 from collections import OrderedDict
+import warnings
 
+
+warnings.filterwarnings('ignore')
 remove_freq = 1
 remove_percent = 0
 smoothing_value = 0
@@ -18,8 +21,8 @@ def read_file(exp=1):
     global df_testing
     global df_training
 
-    # df = pd.read_csv("./hn2018_2019.csv")
-    df = pd.read_csv("./sample.csv")
+    df = pd.read_csv("./hn2018_2019.csv")
+    # df = pd.read_csv("./sample.csv")
     df = df.drop(columns=df.columns[0])
     df['date'] = pd.to_datetime(df['Created At'])
     start_date = '2018-01-01 00:00:00'
