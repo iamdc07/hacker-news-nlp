@@ -1,3 +1,9 @@
+# --------------------------------------------------------
+# Intro to AI: Project 2
+# Written by Dhaval Chavada(40078885) & Anand Kacha (40047673)
+# For COMP 6721 (Lab section - FK) - Fall 2019
+# --------------------------------------------------------
+
 import pandas as pd
 import nltk
 import experiments
@@ -108,11 +114,7 @@ def tokenize_word(raw, title, df, index, w_removed, testing=False):
         else:
             indices_1 = [i for i, e in enumerate(raw) if e == word[1].lower()]
 
-        # print("RAW:", raw)
-        # print(word[0], " ", word[1])
-
         if word[0].istitle() and word[1].istitle():
-            # print("INDICES:", indices_0, " ", indices_1)
             if len(indices_0) > 0 and (
                     pos_dict.get(word[0].lower()) == 'NN' or pos_dict.get(word[0].lower()) == 'NNS'):
                 if len(indices_1) > 0 and (
@@ -133,7 +135,6 @@ def tokenize_word(raw, title, df, index, w_removed, testing=False):
                     else:
                         word_list.append(each_element.lower())
 
-    # print("AFTER:", raw)
     pos = nltk.pos_tag(raw)
 
     for each_word in pos:

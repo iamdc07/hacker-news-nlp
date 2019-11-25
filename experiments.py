@@ -1,3 +1,9 @@
+# --------------------------------------------------------
+# Intro to AI: Project 2
+# Written by Dhaval Chavada(40078885) & Anand Kacha (40047673)
+# For COMP 6721 (Lab section - FK) - Fall 2019
+# --------------------------------------------------------
+
 import pandas as pd
 import gc
 import nltk
@@ -5,7 +11,8 @@ import train
 import operator, math
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, precision_recall_fscore_support, confusion_matrix
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, precision_recall_fscore_support, \
+    confusion_matrix
 
 no_of_words = 0
 each_accuracy = 0
@@ -166,12 +173,10 @@ def classify(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_pol
     predictions = []
 
     line_count = 1
-    # print("TEST")
 
     for index, row in df_testing.iterrows():
         title = row["Title"]
         post_type = row["Post Type"]
-        # print("Test1:", title)
 
         tokenizer = nltk.RegexpTokenizer(r"\w+", False, True)
 
