@@ -5,8 +5,7 @@ import time
 import operator
 from collections import OrderedDict
 import warnings
-
-
+# %matplotlib inline
 warnings.filterwarnings('ignore')
 remove_freq = 1
 remove_percent = 0
