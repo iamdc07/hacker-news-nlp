@@ -5,7 +5,7 @@ import train
 import operator, math
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, precision_recall_fscore_support
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, precision_recall_fscore_support, confusion_matrix
 
 no_of_words = 0
 each_accuracy = 0
@@ -33,6 +33,7 @@ def baseline(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_pol
     precision = precision_score(test_labels, predictions, average="weighted")
     recall = recall_score(test_labels, predictions, average="weighted")
     f1 = f1_score(test_labels, predictions, average="weighted")
+    c_f = confusion_matrix(test_labels, predictions)
     print("\nprecision: story - ", all_score[0][3], " | ask_hn - ", all_score[0][2], " | show_hn - ", all_score[0][1],
           " | poll - ", all_score[0][0])
     print("recall: story - ", all_score[1][3], " | ask_hn - ", all_score[1][2], " | show_hn - ", all_score[1][1],
@@ -43,6 +44,7 @@ def baseline(class_probability, df_testing, p_show_hn_dict, p_ask_hn_dict, p_pol
     print("Precision:", precision)
     print("Recall:", recall)
     print("F1 Measure:", f1)
+    print("Confusion Matrix:\n", c_f)
     return accuracy
 
 
